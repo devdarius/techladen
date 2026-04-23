@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { getFirestore } from '@/lib/firebase-admin';
 import type { Product } from '@/types/product';
 import ProductCard from '@/components/product/ProductCard';
@@ -7,7 +8,39 @@ import TrustSection from '@/components/home/TrustSection';
 import HeroSection from '@/components/home/HeroSection';
 import NewsletterSection from '@/components/home/NewsletterSection';
 
+export const metadata: Metadata = {
+  title: 'TechLaden.de – Premium Handy-Zubehör',
+  description: 'Hochwertige Hüllen, Ladegeräte, Kabel, Schutzglas und Powerbanks. Kostenloser Versand ab 29€. Lieferzeit 3–7 Werktage. Alle Preise inkl. 19% MwSt.',
+  openGraph: {
+    title: 'TechLaden.de – Premium Handy-Zubehör',
+    description: 'Hochwertige Hüllen, Ladegeräte, Kabel und mehr. Schnelle Lieferung nach Deutschland.',
+    type: 'website',
+    url: 'https://techladen.de',
+  },
+};
+
 const CATEGORIES = ['Alle', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'];
+
+function normalize(id: string, data: FirebaseFirestore.DocumentData): Product {
+  return {
+    id,
+    slug: data.slug ?? id,
+    title: data.title ?? '',
+    description: data.description ?? '',
+    category: data.category ?? '',
+    images: Array.isArray(data.images) ? data.images : (data.images ? [data.images] : []),
+    price: { eur: data.price?.eur ?? 0, aliexpressEur: data.price?.aliexpressEur ?? 0 },
+    variants: {
+      colors: Array.isArray(data.variants?.colors) ? data.variants.colors : [],
+      models: Array.isArray(data.variants?.models) ? data.variants.models : [],
+    },
+    aliexpressProductId: data.aliexpressProductId ?? '',
+    inStock: data.inStock ?? true,
+    createdAt: data.createdAt ?? '',
+    updatedAt: data.updatedAt ?? '',
+    badge: data.badge ?? null,
+  };
+}
 
 async function getProducts(category?: string): Promise<Product[]> {
   try {
@@ -17,7 +50,7 @@ async function getProducts(category?: string): Promise<Product[]> {
       query = query.where('category', '==', category);
     }
     const snapshot = await query.orderBy('createdAt', 'desc').limit(48).get();
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Product));
+    return snapshot.docs.map((doc) => normalize(doc.id, doc.data()));
   } catch {
     return [];
   }
