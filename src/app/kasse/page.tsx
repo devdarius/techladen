@@ -1,13 +1,111 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Loader2, Lock, ArrowLeft } from 'lucide-react';
+import { Loader2, Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
 
+// ─── Validation helpers ───────────────────────────────────────
+function validateField(name: string, value: string, country: string): string {
+  switch (name) {
+    case 'firstName':
+    case 'lastName':
+      if (!value.trim()) return 'Pflichtfeld';
+      if (value.trim().length < 2) return 'Mindestens 2 Zeichen';
+      return '';
+    case 'email':
+      if (!value.trim()) return 'Pflichtfeld';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Ungültige E-Mail-Adresse';
+      return '';
+    case 'emailConfirm':
+      return ''; // handled separately
+    case 'phone':
+      if (!value.trim()) return 'Pflichtfeld — wird für Lieferbenachrichtigungen benötigt';
+      if (!/^[\d\s\+\-\(\)]{7,20}$/.test(value.trim())) return 'Ungültige Telefonnummer';
+      return '';
+    case 'street':
+      if (!value.trim()) return 'Pflichtfeld';
+      if (value.trim().length < 5) return 'Bitte vollständige Adresse eingeben';
+      if (!/\d/.test(value)) return 'Hausnummer fehlt';
+      return '';
+    case 'zip':
+      if (!value.trim()) return 'Pflichtfeld';
+      if (country === 'DE' && !/^\d{5}$/.test(value.trim())) return 'PLZ muss 5 Ziffern haben (z.B. 10115)';
+      if (country === 'AT' && !/^\d{4}$/.test(value.trim())) return 'PLZ muss 4 Ziffern haben';
+      if (country === 'CH' && !/^\d{4}$/.test(value.trim())) return 'PLZ muss 4 Ziffern haben';
+      return '';
+    case 'city':
+      if (!value.trim()) return 'Pflichtfeld';
+      if (value.trim().length < 2) return 'Ungültige Stadt';
+      return '';
+    default:
+      return '';
+  }
+}
+
+interface FieldProps {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  onChange: (v: string) => void;
+  onBlur: () => void;
+  error: string;
+  touched: boolean;
+  placeholder?: string;
+  required?: boolean;
+  hint?: string;
+  autoComplete?: string;
+}
+
+function Field({ label, name, type = 'text', value, onChange, onBlur, error, touched, placeholder, required, hint, autoComplete }: FieldProps) {
+  const hasError = touched && error;
+  const isValid = touched && !error && value.trim();
+
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-text-main mb-1.5">
+        {label} {required && <span className="text-primary">*</span>}
+      </label>
+      <div className="relative">
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className={`w-full border rounded-btn px-3 py-2.5 text-sm focus:outline-none transition-colors pr-9 ${
+            hasError
+              ? 'border-red-400 bg-red-50 focus:border-red-500'
+              : isValid
+              ? 'border-green-400 bg-green-50 focus:border-green-500'
+              : 'border-border focus:border-primary'
+          }`}
+        />
+        {isValid && (
+          <CheckCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+        )}
+        {hasError && (
+          <AlertCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-red-400" />
+        )}
+      </div>
+      {hasError && (
+        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+          {error}
+        </p>
+      )}
+      {hint && !hasError && (
+        <p className="text-text-secondary text-xs mt-1">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────
 export default function KassePage() {
   const router = useRouter();
   const { items, total } = useCartStore();
@@ -16,9 +114,10 @@ export default function KassePage() {
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    firstName: user?.firstName ?? '',
-    lastName: user?.lastName ?? '',
+    firstName: '',
+    lastName: '',
     email: '',
+    emailConfirm: '',
     phone: '',
     street: '',
     city: '',
@@ -26,23 +125,77 @@ export default function KassePage() {
     country: 'DE',
   });
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Pre-fill from user account
+  useEffect(() => {
+    if (user) {
+      setForm((f) => ({
+        ...f,
+        firstName: user.firstName || f.firstName,
+        lastName: user.lastName || f.lastName,
+        email: user.email || f.email,
+        emailConfirm: user.email || f.emailConfirm,
+      }));
+    }
+  }, [user]);
+
+  const setField = (name: string) => (value: string) => {
+    setForm((f) => ({ ...f, [name]: value }));
+    if (touched[name]) {
+      const err = name === 'emailConfirm'
+        ? (value !== form.email ? 'E-Mail-Adressen stimmen nicht überein' : '')
+        : validateField(name, value, form.country);
+      setErrors((e) => ({ ...e, [name]: err }));
+    }
+  };
+
+  const touchField = (name: string) => () => {
+    setTouched((t) => ({ ...t, [name]: true }));
+    const err = name === 'emailConfirm'
+      ? (form.emailConfirm !== form.email ? 'E-Mail-Adressen stimmen nicht überein' : '')
+      : validateField(name, form[name as keyof typeof form], form.country);
+    setErrors((e) => ({ ...e, [name]: err }));
+  };
+
+  const validateAll = () => {
+    const fields = ['firstName', 'lastName', 'email', 'emailConfirm', 'phone', 'street', 'zip', 'city'];
+    const newErrors: Record<string, string> = {};
+    const newTouched: Record<string, boolean> = {};
+
+    for (const f of fields) {
+      newTouched[f] = true;
+      newErrors[f] = f === 'emailConfirm'
+        ? (form.emailConfirm !== form.email ? 'E-Mail-Adressen stimmen nicht überein' : '')
+        : validateField(f, form[f as keyof typeof form], form.country);
+    }
+
+    setTouched(newTouched);
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => !e);
+  };
 
   const shipping = total() >= 29 ? 0 : 4.99;
   const grandTotal = total() + shipping;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateAll()) {
+      setError('Bitte korrigiere die markierten Felder.');
+      return;
+    }
     if (!user) { router.push('/anmelden'); return; }
     if (!items.length) return;
+
     setLoading(true);
     setError('');
     try {
+      const { emailConfirm: _, ...shippingAddress } = form;
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingAddress: form }),
+        body: JSON.stringify({ items, shippingAddress }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
@@ -65,6 +218,16 @@ export default function KassePage() {
     );
   }
 
+  const fieldProps = (name: string, extra?: Partial<FieldProps>) => ({
+    name,
+    value: form[name as keyof typeof form],
+    onChange: setField(name),
+    onBlur: touchField(name),
+    error: errors[name] ?? '',
+    touched: touched[name] ?? false,
+    ...extra,
+  });
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Link href="/warenkorb" className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary mb-6 transition-colors">
@@ -80,63 +243,68 @@ export default function KassePage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-5">
-          <div className="bg-white rounded-card border border-border p-6 shadow-card">
-            <h2 className="font-semibold text-text-main mb-4">Lieferadresse</h2>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-4" noValidate>
+          <div className="bg-white rounded-card border border-border p-6 shadow-card space-y-4">
+            <h2 className="font-semibold text-text-main">Lieferadresse</h2>
+
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-text-main mb-1">Vorname *</label>
-                <input type="text" value={form.firstName} onChange={set('firstName')} required
-                  className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-text-main mb-1">Nachname *</label>
-                <input type="text" value={form.lastName} onChange={set('lastName')} required
-                  className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-              </div>
+              <Field {...fieldProps('firstName')} label="Vorname" required placeholder="Max" autoComplete="given-name" />
+              <Field {...fieldProps('lastName')} label="Nachname" required placeholder="Mustermann" autoComplete="family-name" />
             </div>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">E-Mail *</label>
-              <input type="email" value={form.email} onChange={set('email')} required
-                className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-            </div>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">Telefon</label>
-              <input type="tel" value={form.phone} onChange={set('phone')}
-                className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-            </div>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">Straße und Hausnummer *</label>
-              <input type="text" value={form.street} onChange={set('street')} required
-                className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <div>
-                <label className="block text-xs font-medium text-text-main mb-1">PLZ *</label>
-                <input type="text" value={form.zip} onChange={set('zip')} required
-                  className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
-              </div>
+
+            <Field {...fieldProps('email')} label="E-Mail-Adresse" type="email" required
+              placeholder="deine@email.de" autoComplete="email"
+              hint="An diese Adresse senden wir deine Bestellbestätigung" />
+
+            <Field {...fieldProps('emailConfirm')} label="E-Mail bestätigen" type="email" required
+              placeholder="deine@email.de" autoComplete="off"
+              hint="Bitte E-Mail-Adresse wiederholen" />
+
+            <Field {...fieldProps('phone')} label="Telefon" required
+              placeholder="+49 123 456789" autoComplete="tel"
+              hint="Wird für Lieferbenachrichtigungen benötigt" />
+
+            <Field {...fieldProps('street')} label="Straße und Hausnummer" required
+              placeholder="Musterstraße 42" autoComplete="street-address" />
+
+            <div className="grid grid-cols-5 gap-3">
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-text-main mb-1">Stadt *</label>
-                <input type="text" value={form.city} onChange={set('city')} required
-                  className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                <Field {...fieldProps('zip')} label="PLZ" required
+                  placeholder={form.country === 'DE' ? '10115' : '1010'} autoComplete="postal-code" />
+              </div>
+              <div className="col-span-3">
+                <Field {...fieldProps('city')} label="Stadt" required
+                  placeholder="Berlin" autoComplete="address-level2" />
               </div>
             </div>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">Land</label>
-              <select value={form.country} onChange={set('country')}
-                className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
-                <option value="DE">Deutschland</option>
-                <option value="AT">Österreich</option>
-                <option value="CH">Schweiz</option>
+
+            <div>
+              <label className="block text-xs font-semibold text-text-main mb-1.5">Land</label>
+              <select
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                className="w-full border border-border rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-white"
+              >
+                <option value="DE">🇩🇪 Deutschland</option>
+                <option value="AT">🇦🇹 Österreich</option>
+                <option value="CH">🇨🇭 Schweiz</option>
               </select>
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded-btn px-3 py-2">⚠ {error}</p>}
+          {error && (
+            <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 border border-red-200 rounded-btn px-3 py-2.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
 
-          <button type="submit" disabled={loading || !user}
-            className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed">
+          <button
+            type="submit"
+            disabled={loading || !user}
+            className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
             {loading ? 'Weiterleitung zur Zahlung…' : `Jetzt bezahlen ${grandTotal.toFixed(2).replace('.', ',')} €`}
           </button>
@@ -145,14 +313,19 @@ export default function KassePage() {
           </p>
         </form>
 
+        {/* Order summary */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-card border border-border p-5 shadow-card sticky top-24">
-            <h2 className="font-semibold text-text-main mb-4">Bestellübersicht ({items.reduce((s, i) => s + i.quantity, 0)} Artikel)</h2>
+          <div className="bg-white rounded-card border border-border p-5 shadow-card lg:sticky lg:top-24">
+            <h2 className="font-semibold text-text-main mb-4">
+              Bestellübersicht ({items.reduce((s, i) => s + i.quantity, 0)} Artikel)
+            </h2>
             <div className="space-y-3 mb-4">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
                   <div className="relative w-12 h-12 flex-shrink-0 rounded-btn overflow-hidden bg-surface border border-border">
-                    {item.images[0] && <Image src={item.images[0]} alt={item.title} fill className="object-contain p-1" sizes="48px" />}
+                    {item.images[0] && (
+                      <Image src={item.images[0]} alt={item.title} fill className="object-contain p-1" sizes="48px" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-text-main line-clamp-2">{item.title}</p>
@@ -166,7 +339,8 @@ export default function KassePage() {
             </div>
             <div className="border-t border-border pt-3 space-y-1.5 text-sm">
               <div className="flex justify-between text-text-secondary">
-                <span>Zwischensumme</span><span>{total().toFixed(2).replace('.', ',')} €</span>
+                <span>Zwischensumme</span>
+                <span>{total().toFixed(2).replace('.', ',')} €</span>
               </div>
               <div className="flex justify-between text-text-secondary">
                 <span>Versand</span>
@@ -174,8 +348,14 @@ export default function KassePage() {
                   {shipping === 0 ? 'Kostenlos' : `${shipping.toFixed(2).replace('.', ',')} €`}
                 </span>
               </div>
+              {shipping > 0 && (
+                <p className="text-xs text-text-secondary bg-surface rounded px-2 py-1">
+                  Noch <strong className="text-primary">{(29 - total()).toFixed(2).replace('.', ',')} €</strong> bis zum kostenlosen Versand
+                </p>
+              )}
               <div className="flex justify-between font-bold text-text-main border-t border-border pt-2 mt-2">
-                <span>Gesamt</span><span className="text-primary">{grandTotal.toFixed(2).replace('.', ',')} €</span>
+                <span>Gesamt</span>
+                <span className="text-primary">{grandTotal.toFixed(2).replace('.', ',')} €</span>
               </div>
               <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
             </div>
