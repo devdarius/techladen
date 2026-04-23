@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getFirestore } from '@/lib/firebase-admin';
 import { setSession } from '@/lib/auth';
+import { verifyTurnstile } from '@/lib/turnstile';
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, turnstileToken } = await request.json();
     if (!email || !password) {
       return NextResponse.json({ error: 'Bitte E-Mail und Passwort eingeben.' }, { status: 400 });
+    }
+
+    // Verify Turnstile
+    const humanCheck = await verifyTurnstile(turnstileToken ?? '');
+    if (!humanCheck) {
+      return NextResponse.json({ error: 'Sicherheitsüberprüfung fehlgeschlagen. Bitte versuche es erneut.' }, { status: 400 });
     }
 
     const db = getFirestore();

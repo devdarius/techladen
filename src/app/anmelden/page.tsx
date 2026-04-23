@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Zap, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { useAuthStore } from '@/lib/auth-store';
 
 export default function AnmeldenPage() {
@@ -16,9 +17,14 @@ export default function AnmeldenPage() {
   const [loading, setLoading] = useState(false);
   const [unverified, setUnverified] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const turnstileToken = useRef<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!turnstileToken.current) {
+      setError('Bitte warte auf die Sicherheitsüberprüfung.');
+      return;
+    }
     setLoading(true);
     setError('');
     setUnverified(false);
@@ -26,7 +32,7 @@ export default function AnmeldenPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, turnstileToken: turnstileToken.current }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -61,7 +67,6 @@ export default function AnmeldenPage() {
         </div>
 
         <div className="bg-white rounded-card border border-border p-6 shadow-card">
-          {/* Unverified email warning */}
           {unverified && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-btn p-4 mb-4">
               <div className="flex items-start gap-3">
@@ -71,10 +76,8 @@ export default function AnmeldenPage() {
                   <p className="text-xs text-yellow-700 mt-1">
                     Bitte bestätige zuerst deine E-Mail-Adresse <strong>{unverifiedEmail}</strong>.
                   </p>
-                  <Link
-                    href={`/email-bestaetigung`}
-                    className="inline-block mt-2 text-xs font-semibold text-yellow-800 underline hover:no-underline"
-                  >
+                  <Link href="/email-bestaetigung"
+                    className="inline-block mt-2 text-xs font-semibold text-yellow-800 underline hover:no-underline">
                     Neuen Bestätigungslink anfordern →
                   </Link>
                 </div>
@@ -101,7 +104,19 @@ export default function AnmeldenPage() {
                 </button>
               </div>
             </div>
+
+            {/* Turnstile */}
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={(token) => { turnstileToken.current = token; }}
+                onExpire={() => { turnstileToken.current = ''; }}
+                options={{ theme: 'light', language: 'de' }}
+              />
+            </div>
+
             {error && <p className="text-red-500 text-sm">⚠ {error}</p>}
+
             <button type="submit" disabled={loading}
               className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}

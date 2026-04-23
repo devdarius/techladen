@@ -3,13 +3,20 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { getFirestore } from '@/lib/firebase-admin';
 import { sendVerificationEmail } from '@/lib/email';
+import { verifyTurnstile } from '@/lib/turnstile';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, firstName, lastName } = await request.json();
+    const { email, password, firstName, lastName, turnstileToken } = await request.json();
 
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json({ error: 'Alle Felder sind erforderlich.' }, { status: 400 });
+    }
+
+    // Verify Turnstile
+    const humanCheck = await verifyTurnstile(turnstileToken ?? '');
+    if (!humanCheck) {
+      return NextResponse.json({ error: 'Sicherheitsüberprüfung fehlgeschlagen. Bitte versuche es erneut.' }, { status: 400 });
     }
     if (password.length < 6) {
       return NextResponse.json({ error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' }, { status: 400 });
