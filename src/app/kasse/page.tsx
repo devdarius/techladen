@@ -170,6 +170,8 @@ export default function KassePage() {
         ? (form.emailConfirm !== form.email ? 'E-Mail-Adressen stimmen nicht überein' : '')
         : validateField(f, form[f as keyof typeof form], form.country);
     }
+    // country is always valid — never touch it
+    newTouched['country'] = false;
 
     setTouched(newTouched);
     setErrors(newErrors);
