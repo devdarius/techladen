@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         currency: 'eur',
         product_data: {
           name: item.title,
-          images: item.images[0] ? [item.images[0]] : [],
+          // Stripe requires images to be publicly accessible HTTPS URLs — skip for now
           description: [item.selectedColor, item.selectedModel].filter(Boolean).join(' · ') || undefined,
         },
         unit_amount: Math.round(item.price.eur * 100),
@@ -100,7 +100,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error('Checkout error:', error);
-    return NextResponse.json({ error: 'Fehler beim Erstellen der Zahlung.' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Checkout error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
