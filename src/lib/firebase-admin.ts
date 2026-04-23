@@ -11,7 +11,12 @@ function getFirebaseAdmin() {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON env var is not set');
   }
 
-  const serviceAccount = JSON.parse(serviceAccountJson);
+  // Strip surrounding quotes if present, unescape \n
+  const cleaned = serviceAccountJson
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\\n/g, '\n');
+
+  const serviceAccount = JSON.parse(cleaned);
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
