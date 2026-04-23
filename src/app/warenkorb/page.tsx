@@ -3,100 +3,57 @@
 import { useCartStore } from '@/lib/cart-store';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Minus, Plus, X, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, X, ShoppingBag, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
 
 export default function WarenkorbPage() {
   const { items, removeItem, updateQuantity, total } = useCartStore();
+  const [toast, setToast] = useState(false);
 
   if (items.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <ShoppingBag className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-white mb-2">
-          Dein Warenkorb ist leer
-        </h1>
-        <p className="text-slate-400 mb-6">
-          Entdecke unsere Produkte und füge sie hinzu.
-        </p>
-        <Link
-          href="/"
-          className="inline-block px-6 py-3 rounded-xl font-semibold text-black"
-          style={{ backgroundColor: '#00D4FF' }}
-        >
-          Zum Shop
+        <ShoppingBag className="w-16 h-16 text-border mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-text-main mb-2">Dein Warenkorb ist leer</h1>
+        <p className="text-text-secondary mb-6">Entdecke unsere Produkte und füge sie hinzu.</p>
+        <Link href="/" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
+          Zum Shop <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-white mb-8">Warenkorb</h1>
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-2xl font-bold text-text-main mb-8">Warenkorb</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           {items.map((item) => (
-            <div
-              key={item.id}
-              className="flex gap-4 bg-card rounded-xl p-4 border border-slate-800"
-            >
-              <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-900">
+            <div key={item.id} className="flex gap-4 bg-white rounded-card border border-border p-4 shadow-card">
+              <div className="relative w-20 h-20 flex-shrink-0 rounded-btn overflow-hidden bg-surface border border-border">
                 {item.images[0] && (
-                  <Image
-                    src={item.images[0]}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
+                  <Image src={item.images[0]} alt={item.title} fill className="object-contain p-1" sizes="80px" />
                 )}
               </div>
-
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white line-clamp-2">
-                  {item.title}
-                </p>
-                {item.selectedColor && (
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Farbe: {item.selectedColor}
-                  </p>
-                )}
-                {item.selectedModel && (
-                  <p className="text-xs text-slate-500">
-                    Modell: {item.selectedModel}
-                  </p>
-                )}
+                <p className="text-sm font-medium text-text-main line-clamp-2">{item.title}</p>
+                {item.selectedColor && <p className="text-xs text-text-secondary mt-0.5">Farbe: {item.selectedColor}</p>}
+                {item.selectedModel && <p className="text-xs text-text-secondary">Modell: {item.selectedModel}</p>}
                 <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors"
-                    >
+                  <div className="flex items-center border border-border rounded-btn overflow-hidden">
+                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center hover:bg-surface transition-colors">
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="text-sm font-medium w-5 text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors"
-                    >
+                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-surface transition-colors">
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                  <p className="font-bold text-white">
-                    {(item.price.eur * item.quantity)
-                      .toFixed(2)
-                      .replace('.', ',')}{' '}
-                    €
-                  </p>
+                  <p className="font-bold text-primary">{(item.price.eur * item.quantity).toFixed(2).replace('.', ',')} €</p>
                 </div>
               </div>
-
-              <button
-                onClick={() => removeItem(item.id)}
-                className="self-start text-slate-600 hover:text-slate-400 transition-colors"
-              >
+              <button onClick={() => removeItem(item.id)} className="self-start text-text-secondary hover:text-red-500 transition-colors p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -104,39 +61,49 @@ export default function WarenkorbPage() {
         </div>
 
         {/* Summary */}
-        <div className="bg-card rounded-xl p-6 border border-slate-800 h-fit">
-          <h2 className="font-bold text-white mb-4">Zusammenfassung</h2>
+        <div className="bg-white rounded-card border border-border p-6 shadow-card h-fit">
+          <h2 className="font-bold text-text-main mb-4">Zusammenfassung</h2>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between text-slate-400">
+            <div className="flex justify-between text-text-secondary">
               <span>Zwischensumme</span>
               <span>{total().toFixed(2).replace('.', ',')} €</span>
             </div>
-            <div className="flex justify-between text-slate-400">
+            <div className="flex justify-between text-text-secondary">
               <span>Versand</span>
-              <span>Kostenlos</span>
+              <span className={total() >= 29 ? 'text-success font-medium' : ''}>
+                {total() >= 29 ? 'Kostenlos' : '4,99 €'}
+              </span>
             </div>
-            <div className="border-t border-slate-800 pt-2 mt-2 flex justify-between font-bold text-white">
+            <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-text-main">
               <span>Gesamt</span>
-              <span>{total().toFixed(2).replace('.', ',')} €</span>
+              <span>{(total() + (total() >= 29 ? 0 : 4.99)).toFixed(2).replace('.', ',')} €</span>
             </div>
-            <p className="text-xs text-slate-500">inkl. 19% MwSt.</p>
+            <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
           </div>
 
-          <button
-            disabled
-            className="w-full mt-6 py-3 rounded-xl font-semibold text-slate-400 bg-slate-800 cursor-not-allowed border border-slate-700 text-sm"
-          >
-            Zur Kasse – Demnächst verfügbar
-          </button>
+          {total() < 29 && (
+            <div className="mt-3 text-xs text-text-secondary bg-surface rounded-btn px-3 py-2 text-center">
+              Noch <strong className="text-primary">{(29 - total()).toFixed(2).replace('.', ',')} €</strong> bis zum kostenlosen Versand
+            </div>
+          )}
 
-          <Link
-            href="/"
-            className="block text-center mt-3 text-sm text-slate-400 hover:text-white transition-colors"
+          <button
+            onClick={() => { setToast(true); setTimeout(() => setToast(false), 3000); }}
+            className="btn-primary w-full mt-5 py-3 flex items-center justify-center gap-2 text-sm"
           >
+            Zur Kasse <ArrowRight className="w-4 h-4" />
+          </button>
+          <Link href="/" className="block text-center mt-3 text-sm text-text-secondary hover:text-primary transition-colors">
             Weiter einkaufen
           </Link>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text-main text-white text-sm px-5 py-3 rounded-card shadow-card-hover">
+          Kasse kommt bald — wir arbeiten daran! 🚀
+        </div>
+      )}
     </div>
   );
 }

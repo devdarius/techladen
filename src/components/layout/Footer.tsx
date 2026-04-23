@@ -1,62 +1,82 @@
 import Link from 'next/link';
-import { Zap } from 'lucide-react';
+import { Zap, Instagram, Twitter, Facebook } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-card border-t border-slate-800 mt-16">
+    <footer className="bg-surface border-t border-border mt-16">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 font-bold text-lg mb-3">
-              <Zap className="w-5 h-5" style={{ color: '#00D4FF' }} />
-              <span className="text-white">Tech</span>
-              <span style={{ color: '#00D4FF' }}>Laden</span>
-              <span className="text-slate-400 text-sm font-normal">.de</span>
-            </div>
-            <p className="text-slate-400 text-sm">
-              Premium Handy-Zubehör für anspruchsvolle Kunden. Schnelle
-              Lieferung, faire Preise.
+            <Link href="/" className="flex items-center gap-1.5 mb-3">
+              <Zap className="w-5 h-5 text-primary" />
+              <span className="font-bold text-text-main">Tech</span>
+              <span className="font-light text-text-secondary">Laden.de</span>
+            </Link>
+            <p className="text-sm text-text-secondary leading-relaxed mb-4">
+              Premium Handy-Zubehör für anspruchsvolle Kunden. Schnelle Lieferung, faire Preise.
             </p>
+            <div className="flex gap-3">
+              {[Instagram, Twitter, Facebook].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="w-8 h-8 rounded-full bg-white border border-border flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
           </div>
 
+          {/* Kategorien */}
           <div>
-            <h3 className="font-semibold text-white mb-3">Rechtliches</h3>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>
-                <Link href="/impressum" className="hover:text-white transition-colors">
-                  Impressum
-                </Link>
-              </li>
-              <li>
-                <Link href="/datenschutz" className="hover:text-white transition-colors">
-                  Datenschutz
-                </Link>
-              </li>
-              <li>
-                <Link href="/agb" className="hover:text-white transition-colors">
-                  AGB
-                </Link>
-              </li>
-              <li>
-                <Link href="/widerruf" className="hover:text-white transition-colors">
-                  Widerrufsrecht
-                </Link>
-              </li>
+            <h3 className="font-semibold text-text-main mb-3">Kategorien</h3>
+            <ul className="space-y-2 text-sm text-text-secondary">
+              {['Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'].map((cat) => (
+                <li key={cat}>
+                  <Link href={`/?kategorie=${cat}`} className="hover:text-primary transition-colors">
+                    {cat}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
+          {/* Rechtliches */}
           <div>
-            <h3 className="font-semibold text-white mb-3">Service</h3>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>Lieferzeit: 3–7 Werktage</li>
-              <li>14 Tage Rückgaberecht</li>
-              <li>Alle Preise inkl. 19% MwSt.</li>
+            <h3 className="font-semibold text-text-main mb-3">Rechtliches</h3>
+            <ul className="space-y-2 text-sm text-text-secondary">
+              {[
+                { label: 'Impressum', href: '/impressum' },
+                { label: 'Datenschutz', href: '/datenschutz' },
+                { label: 'AGB', href: '/agb' },
+                { label: 'Widerrufsrecht', href: '/widerruf' },
+              ].map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="hover:text-primary transition-colors">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Service */}
+          <div>
+            <h3 className="font-semibold text-text-main mb-3">Service</h3>
+            <ul className="space-y-2 text-sm text-text-secondary">
+              <li><a href="mailto:info@techladen.de" className="hover:text-primary transition-colors">Kontakt</a></li>
+              <li><span>Lieferzeit: 3–7 Werktage</span></li>
+              <li><span>Versandkostenfrei ab 29€</span></li>
+              <li><span>14 Tage Rückgabe</span></li>
             </ul>
           </div>
         </div>
+      </div>
 
-        <div className="border-t border-slate-800 mt-8 pt-6 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} TechLaden.de – Alle Rechte vorbehalten
+      <div className="border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-text-secondary">
+          <span>© 2026 TechLaden.de — Alle Rechte vorbehalten</span>
+          <span>Made in Germany 🇩🇪</span>
         </div>
       </div>
     </footer>

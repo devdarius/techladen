@@ -2,51 +2,77 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ShoppingCart, Truck, Shield, RotateCcw } from 'lucide-react';
+import Link from 'next/link';
+import { ShoppingCart, Star, Shield, RotateCcw, Truck, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import type { Product } from '@/types/product';
 import { useCartStore } from '@/lib/cart-store';
+import ProductCard from './ProductCard';
 
 interface Props {
   product: Product;
   related: Product[];
 }
 
+function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-btn overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-text-main hover:bg-surface transition-colors"
+      >
+        {title}
+        {open ? <ChevronUp className="w-4 h-4 text-text-secondary" /> : <ChevronDown className="w-4 h-4 text-text-secondary" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 text-sm text-text-secondary leading-relaxed border-t border-border pt-3">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProductDetail({ product, related }: Props) {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(
-    product.variants.colors[0] ?? ''
-  );
-  const [selectedModel, setSelectedModel] = useState(
-    product.variants.models[0] ?? ''
-  );
+  const [selectedColor, setSelectedColor] = useState(product.variants.colors[0] ?? '');
+  const [selectedModel, setSelectedModel] = useState(product.variants.models[0] ?? '');
+  const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const { addItem } = useCartStore();
 
   const handleAdd = () => {
-    addItem(product, selectedColor, selectedModel);
+    for (let i = 0; i < quantity; i++) addItem(product, selectedColor, selectedModel);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-sm text-text-secondary mb-6">
+        <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+        <span>/</span>
+        <Link href={`/?kategorie=${product.category}`} className="hover:text-primary transition-colors">{product.category}</Link>
+        <span>/</span>
+        <span className="text-text-main line-clamp-1">{product.title}</span>
+      </nav>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Image gallery */}
+        {/* Gallery */}
         <div className="space-y-3">
-          <div className="relative aspect-square bg-slate-900 rounded-xl overflow-hidden">
+          <div className="relative aspect-square bg-surface rounded-card overflow-hidden border border-border">
             {product.images[selectedImage] ? (
               <Image
                 src={product.images[selectedImage]}
                 alt={product.title}
                 fill
-                className="object-cover"
+                className="object-contain p-6"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-600">
-                Kein Bild
-              </div>
+              <div className="w-full h-full flex items-center justify-center text-text-secondary">Kein Bild</div>
             )}
           </div>
           {product.images.length > 1 && (
@@ -55,61 +81,66 @@ export default function ProductDetail({ product, related }: Props) {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
-                    i === selectedImage
-                      ? 'border-accent'
-                      : 'border-slate-700 hover:border-slate-500'
+                  className={`relative w-16 h-16 flex-shrink-0 rounded-btn overflow-hidden border-2 transition-colors ${
+                    i === selectedImage ? 'border-primary' : 'border-border hover:border-gray-400'
                   }`}
-                  style={
-                    i === selectedImage ? { borderColor: '#00D4FF' } : {}
-                  }
                 >
-                  <Image
-                    src={img}
-                    alt={`Bild ${i + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
+                  <Image src={img} alt={`Bild ${i + 1}`} fill className="object-contain p-1" sizes="64px" />
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Product info */}
-        <div className="space-y-6">
+        {/* Info */}
+        <div className="space-y-5">
           <div>
-            <p className="text-sm text-slate-400 mb-1">{product.category}</p>
-            <h1 className="text-2xl font-bold text-white">{product.title}</h1>
+            <span className="inline-block text-xs font-semibold text-primary bg-red-50 px-2 py-1 rounded-full mb-2">
+              {product.category}
+            </span>
+            <h1 className="text-2xl font-bold text-text-main leading-tight">{product.title}</h1>
           </div>
 
+          {/* Stars */}
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              {[1,2,3,4,5].map((s) => (
+                <Star key={s} className={`w-4 h-4 ${s <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 fill-gray-300'}`} />
+              ))}
+            </div>
+            <span className="text-sm text-text-secondary">(124 Bewertungen)</span>
+          </div>
+
+          {/* Price */}
           <div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-primary">
               {product.price.eur.toFixed(2).replace('.', ',')} €
             </p>
-            <p className="text-sm text-slate-400 mt-1">inkl. 19% MwSt.</p>
+            <p className="text-sm text-text-secondary mt-0.5">inkl. 19% MwSt. zzgl. Versand</p>
           </div>
 
-          {/* Variants */}
+          {/* Stock */}
+          <div className="flex items-center gap-2 text-sm font-medium text-success">
+            <Check className="w-4 h-4" />
+            Auf Lager — Lieferzeit 3–7 Werktage
+          </div>
+
+          {/* Color variants */}
           {product.variants.colors.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Farbe: <span className="text-white">{selectedColor}</span>
-              </label>
+              <p className="text-sm font-medium text-text-main mb-2">
+                Farbe: <span className="font-normal text-text-secondary">{selectedColor}</span>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {product.variants.colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+                    className={`px-3 py-1.5 rounded-btn text-sm border-2 transition-colors ${
                       selectedColor === color
-                        ? 'border-accent text-white'
-                        : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                        ? 'border-primary text-primary bg-red-50 font-medium'
+                        : 'border-border text-text-secondary hover:border-gray-400'
                     }`}
-                    style={
-                      selectedColor === color ? { borderColor: '#00D4FF' } : {}
-                    }
                   >
                     {color}
                   </button>
@@ -118,101 +149,94 @@ export default function ProductDetail({ product, related }: Props) {
             </div>
           )}
 
+          {/* Model dropdown */}
           {product.variants.models.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Modell
-              </label>
+              <label className="block text-sm font-medium text-text-main mb-2">Modell</label>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent"
-                style={{ '--tw-ring-color': '#00D4FF' } as React.CSSProperties}
+                className="w-full border border-border rounded-btn px-3 py-2.5 text-sm text-text-main bg-white focus:outline-none focus:border-primary"
               >
-                {product.variants.models.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
+                {product.variants.models.map((m) => (
+                  <option key={m} value={m}>{m}</option>
                 ))}
               </select>
             </div>
           )}
 
+          {/* Quantity */}
+          <div>
+            <p className="text-sm font-medium text-text-main mb-2">Menge</p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center border border-border rounded-btn overflow-hidden">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-surface transition-colors text-text-main font-bold"
+                >
+                  −
+                </button>
+                <span className="w-10 text-center text-sm font-medium">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-surface transition-colors text-text-main font-bold"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
           <button
             onClick={handleAdd}
             disabled={!product.inStock}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ backgroundColor: '#00D4FF' }}
+            className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-5 h-5" />
-            {added ? 'Hinzugefügt ✓' : 'In den Warenkorb'}
+            {added ? '✓ Hinzugefügt!' : 'In den Warenkorb'}
           </button>
 
-          {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-3 pt-2">
+          {/* Trust row */}
+          <div className="grid grid-cols-3 gap-2 pt-1">
             {[
-              { icon: Truck, text: 'Lieferzeit: 3–7 Werktage' },
-              { icon: Shield, text: '14 Tage Rückgabe' },
-              { icon: RotateCcw, text: 'Kostenloser Umtausch' },
+              { icon: Shield, text: 'Sichere Zahlung' },
+              { icon: RotateCcw, text: '14 Tage Rückgabe' },
+              { icon: Truck, text: 'Versand ab 29€ frei' },
             ].map(({ icon: Icon, text }) => (
-              <div
-                key={text}
-                className="flex flex-col items-center gap-1 p-3 bg-slate-800/50 rounded-lg text-center"
-              >
-                <Icon className="w-5 h-5 text-slate-400" />
-                <span className="text-xs text-slate-400">{text}</span>
+              <div key={text} className="flex flex-col items-center gap-1 p-2 bg-surface rounded-btn text-center">
+                <Icon className="w-4 h-4 text-text-secondary" />
+                <span className="text-xs text-text-secondary">{text}</span>
               </div>
             ))}
           </div>
 
-          {/* Description */}
-          {product.description && (
-            <div>
-              <h2 className="font-semibold text-white mb-3">Beschreibung</h2>
-              <div
-                className="text-sm text-slate-400 leading-relaxed prose prose-invert prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-            </div>
-          )}
+          {/* Accordions */}
+          <div className="space-y-2 pt-2">
+            <Accordion title="Beschreibung">
+              {product.description ? (
+                <div dangerouslySetInnerHTML={{ __html: product.description }} />
+              ) : (
+                <p>Keine Beschreibung verfügbar.</p>
+              )}
+            </Accordion>
+            <Accordion title="Lieferung & Rückgabe">
+              <p>Lieferzeit: 3–7 Werktage nach Deutschland. Kostenloser Versand ab 29€ Bestellwert.</p>
+              <p className="mt-2">14 Tage Rückgaberecht ab Erhalt der Ware. Rücksendung kostenlos.</p>
+            </Accordion>
+            <Accordion title="Bewertungen">
+              <p>4.5 von 5 Sternen — basierend auf 124 Bewertungen.</p>
+            </Accordion>
+          </div>
         </div>
       </div>
 
-      {/* Related products */}
+      {/* Related */}
       {related.length > 0 && (
         <div className="mt-16">
-          <h2 className="text-xl font-bold text-white mb-6">
-            Ähnliche Produkte
-          </h2>
+          <h2 className="text-xl font-bold text-text-main mb-6">Ähnliche Produkte</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {related.map((p) => (
-              <a
-                key={p.id}
-                href={`/${p.slug}`}
-                className="group bg-card rounded-xl overflow-hidden border border-slate-800 hover:border-accent transition-colors"
-                style={{ '--tw-border-opacity': '1' } as React.CSSProperties}
-              >
-                <div className="relative aspect-square bg-slate-900">
-                  {p.images[0] && (
-                    <Image
-                      src={p.images[0]}
-                      alt={p.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                    />
-                  )}
-                </div>
-                <div className="p-3">
-                  <p className="text-xs text-slate-300 line-clamp-2">
-                    {p.title}
-                  </p>
-                  <p className="text-sm font-bold text-white mt-1">
-                    {p.price.eur.toFixed(2).replace('.', ',')} €
-                  </p>
-                </div>
-              </a>
-            ))}
+            {related.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       )}

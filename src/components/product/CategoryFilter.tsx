@@ -22,17 +22,16 @@ export default function CategoryFilter({ categories, active }: Props) {
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
       {categories.map((cat) => (
         <button
           key={cat}
           onClick={() => handleClick(cat)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
             active === cat
-              ? 'text-black'
-              : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+              ? 'bg-primary text-white border-primary'
+              : 'bg-white text-text-main border-border hover:border-primary hover:text-primary'
           }`}
-          style={active === cat ? { backgroundColor: '#00D4FF' } : {}}
         >
           {cat}
         </button>

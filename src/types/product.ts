@@ -17,6 +17,7 @@ export interface Product {
   inStock: boolean;
   createdAt: string;
   updatedAt: string;
+  badge?: string | null;
 }
 
 export interface CartItem extends Product {
