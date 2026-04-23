@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, Zap, Menu, X, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Search, Zap, Menu, X, ChevronDown, User } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
+import { useAuthStore } from '@/lib/auth-store';
 
 const CATEGORIES = ['Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'];
 
 export default function Header() {
   const { items, openCart } = useCartStore();
+  const { user } = useAuthStore();
   const count = items.reduce((s, i) => s + i.quantity, 0);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -73,6 +75,14 @@ export default function Header() {
           >
             <Search className="w-5 h-5" />
           </button>
+
+          <Link
+            href={user ? '/konto' : '/logowanie'}
+            className="p-2 rounded-btn hover:bg-surface transition-colors text-text-secondary hover:text-text-main"
+            aria-label="Konto"
+          >
+            <User className="w-5 h-5" />
+          </Link>
 
           <button
             onClick={openCart}

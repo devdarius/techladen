@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { X, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 
@@ -114,12 +115,13 @@ export default function CartDrawer() {
             </div>
             <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
 
-            <button
-              onClick={handleCheckout}
+            <Link
+              href="/kasa"
+              onClick={closeCart}
               className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-sm"
             >
               Zur Kasse <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
             <button onClick={closeCart} className="w-full text-center text-sm text-text-secondary hover:text-primary transition-colors">
               Weiter einkaufen
             </button>

@@ -4,11 +4,9 @@ import { useCartStore } from '@/lib/cart-store';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Minus, Plus, X, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
 
 export default function WarenkorbPage() {
   const { items, removeItem, updateQuantity, total } = useCartStore();
-  const [toast, setToast] = useState(false);
 
   if (items.length === 0) {
     return (
@@ -87,23 +85,17 @@ export default function WarenkorbPage() {
             </div>
           )}
 
-          <button
-            onClick={() => { setToast(true); setTimeout(() => setToast(false), 3000); }}
+          <Link
+            href="/kasa"
             className="btn-primary w-full mt-5 py-3 flex items-center justify-center gap-2 text-sm"
           >
             Zur Kasse <ArrowRight className="w-4 h-4" />
-          </button>
+          </Link>
           <Link href="/" className="block text-center mt-3 text-sm text-text-secondary hover:text-primary transition-colors">
             Weiter einkaufen
           </Link>
         </div>
       </div>
-
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text-main text-white text-sm px-5 py-3 rounded-card shadow-card-hover">
-          Kasse kommt bald — wir arbeiten daran! 🚀
-        </div>
-      )}
     </div>
   );
 }
