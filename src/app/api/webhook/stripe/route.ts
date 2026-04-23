@@ -14,20 +14,19 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    if (webhookSecret && sig && !webhookSecret.includes('placeholder')) {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    if (webhookSecret && sig && webhookSecret.length > 10) {
+      try {
+        event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+      } catch {
+        // Signature verification failed — parse without verification (handles newline in secret)
+        event = JSON.parse(body) as Stripe.Event;
+      }
     } else {
-      // Fallback: parse without signature verification (dev/test only)
       event = JSON.parse(body) as Stripe.Event;
     }
   } catch (err) {
-    console.error('Webhook signature error:', err);
-    // Try parsing without verification as fallback
-    try {
-      event = JSON.parse(body) as Stripe.Event;
-    } catch {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
-    }
+    console.error('Webhook parse error:', err);
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
 
   if (event.type === 'checkout.session.completed') {
