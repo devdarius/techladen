@@ -1,16 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Star, Shield, RotateCcw, Truck, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import type { Product } from '@/types/product';
 import { useCartStore } from '@/lib/cart-store';
 import ProductCard from './ProductCard';
+import StockCounter from './StockCounter';
+import VisitorsCounter from './VisitorsCounter';
+import SocialProofToast from '@/components/ui/SocialProofToast';
+import CountdownTimer from '@/components/ui/CountdownTimer';
+import ProductReviews from './ProductReviews';
+import { generateReviews } from '@/lib/fake-reviews';
+import { trackRecentlyViewed } from '@/components/home/RecentlyViewed';
 
 interface Props {
   product: Product;
   related: Product[];
+}
+
+function hashSlug(slug: string): number {
+  let h = 5381;
+  for (let i = 0; i < slug.length; i++) h = ((h << 5) + h) ^ slug.charCodeAt(i);
+  return Math.abs(h);
+}
+
+function fakeOriginalPrice(price: number): number {
+  return Math.floor(price * 1.35) + 0.99;
 }
 
 function Accordion({ title, children }: { title: string; children: React.ReactNode }) {
@@ -41,6 +58,19 @@ export default function ProductDetail({ product, related }: Props) {
   const [added, setAdded] = useState(false);
   const { addItem } = useCartStore();
 
+  const reviews = generateReviews(product.slug);
+  const original = fakeOriginalPrice(product.price.eur);
+  const discountPct = Math.round(((original - product.price.eur) / original) * 100);
+
+  useEffect(() => {
+    trackRecentlyViewed({
+      slug: product.slug,
+      title: product.title,
+      image: product.images[0] ?? '',
+      price: product.price.eur,
+    });
+  }, [product]);
+
   const handleAdd = () => {
     for (let i = 0; i < quantity; i++) addItem(product, selectedColor, selectedModel);
     setAdded(true);
@@ -49,6 +79,8 @@ export default function ProductDetail({ product, related }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
+      <SocialProofToast />
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-text-secondary mb-6">
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
@@ -93,9 +125,9 @@ export default function ProductDetail({ product, related }: Props) {
         </div>
 
         {/* Info */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           <div>
-            <span className="inline-block text-xs font-semibold text-primary bg-red-50 px-2 py-1 rounded-full mb-2">
+            <span className="inline-block text-xs font-semibold text-primary bg-indigo-50 px-2 py-1 rounded-full mb-2">
               {product.category}
             </span>
             <h1 className="text-2xl font-bold text-text-main leading-tight">{product.title}</h1>
@@ -108,22 +140,36 @@ export default function ProductDetail({ product, related }: Props) {
                 <Star key={s} className={`w-4 h-4 ${s <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 fill-gray-300'}`} />
               ))}
             </div>
-            <span className="text-sm text-text-secondary">(124 Bewertungen)</span>
+            <span className="text-sm text-text-secondary">({reviews.length} Bewertungen)</span>
           </div>
 
           {/* Price */}
           <div>
-            <p className="text-3xl font-bold text-primary">
-              {product.price.eur.toFixed(2).replace('.', ',')} €
-            </p>
+            <div className="flex items-baseline gap-3">
+              <p className="text-3xl font-bold text-error">
+                {product.price.eur.toFixed(2).replace('.', ',')} €
+              </p>
+              <p className="text-lg text-text-secondary line-through">
+                {original.toFixed(2).replace('.', ',')} €
+              </p>
+              <span className="bg-error text-white text-sm font-bold px-2 py-0.5 rounded-full">
+                -{discountPct}%
+              </span>
+            </div>
             <p className="text-sm text-text-secondary mt-0.5">inkl. 19% MwSt. zzgl. Versand</p>
           </div>
+
+          {/* Countdown */}
+          <CountdownTimer label="Angebot endet in:" />
 
           {/* Stock */}
           <div className="flex items-center gap-2 text-sm font-medium text-success">
             <Check className="w-4 h-4" />
             Auf Lager — Lieferzeit 3–7 Werktage
           </div>
+
+          <StockCounter slug={product.slug} />
+          <VisitorsCounter />
 
           {/* Color variants */}
           {product.variants.colors.length > 0 && (
@@ -138,7 +184,7 @@ export default function ProductDetail({ product, related }: Props) {
                     onClick={() => setSelectedColor(color)}
                     className={`px-3 py-1.5 rounded-btn text-sm border-2 transition-colors ${
                       selectedColor === color
-                        ? 'border-primary text-primary bg-red-50 font-medium'
+                        ? 'border-primary text-primary bg-indigo-50 font-medium'
                         : 'border-border text-text-secondary hover:border-gray-400'
                     }`}
                   >
@@ -191,7 +237,7 @@ export default function ProductDetail({ product, related }: Props) {
           <button
             onClick={handleAdd}
             disabled={!product.inStock}
-            className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-cta w-full py-3.5 flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="w-5 h-5" />
             {added ? '✓ Hinzugefügt!' : 'In den Warenkorb'}
@@ -224,12 +270,12 @@ export default function ProductDetail({ product, related }: Props) {
               <p>Lieferzeit: 3–7 Werktage nach Deutschland. Kostenloser Versand ab 29€ Bestellwert.</p>
               <p className="mt-2">14 Tage Rückgaberecht ab Erhalt der Ware. Rücksendung kostenlos.</p>
             </Accordion>
-            <Accordion title="Bewertungen">
-              <p>4.5 von 5 Sternen — basierend auf 124 Bewertungen.</p>
-            </Accordion>
           </div>
         </div>
       </div>
+
+      {/* Reviews */}
+      <ProductReviews reviews={reviews} />
 
       {/* Related */}
       {related.length > 0 && (

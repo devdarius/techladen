@@ -9,13 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#E63946',
-        'primary-dark': '#C1121F',
-        surface: '#F8F9FA',
-        border: '#E9ECEF',
+        primary: '#4F46E5',
+        'primary-dark': '#4338CA',
+        cta: '#059669',
+        'cta-dark': '#047857',
+        urgency: '#D97706',
+        error: '#E63946',
+        surface: '#F8FAFC',
+        border: '#E2E8F0',
         'text-main': '#1A1A2E',
         'text-secondary': '#6C757D',
-        success: '#2ECC71',
+        success: '#059669',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

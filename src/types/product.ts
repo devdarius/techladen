@@ -25,3 +25,16 @@ export interface CartItem extends Product {
   selectedColor?: string;
   selectedModel?: string;
 }
+
+export interface Review {
+  id: string;
+  author: string;
+  location: string;
+  rating: number; // 1-5
+  title: string;
+  text: string;
+  date: string;
+  verified: boolean;
+  helpful: number;
+  avatar?: string;
+}

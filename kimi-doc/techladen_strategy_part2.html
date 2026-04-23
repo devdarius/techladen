@@ -1,0 +1,297 @@
+
+<!-- SECTION 4: DESIGN SPECIFICATION -->
+<h1 id="sec4">4. Complete Redesign-Spezifikation</h1>
+
+<h2 id="sec4-1">4.1 Design-System</h2>
+
+<h3>Farbpalette (Tailwind CSS)</h3>
+
+<p>Die aktuelle rote Akzentfarbe (#E63946) wirkt alarmierend und senkt das Vertrauen. Das neue Design setzt auf einen professionellen, tech-fokussierten Look mit Indigo als Primärfarbe, kombiniert mit warmen Neutrals:</p>
+
+<table>
+    <caption data-label="Tabelle 8">Neue Farbpalette mit Tailwind-Klassen</caption>
+    <thead>
+        <tr><th>Rolle</th><th>Hex-Wert</th><th>Tailwind-Class</th><th>Verwendung</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><strong>Primary</strong></td><td>#4F46E5</td><td><code>indigo-600</code></td><td>CTAs, Links, Primäre Buttons, Akzente</td></tr>
+        <tr><td><strong>Primary Hover</strong></td><td>#4338CA</td><td><code>indigo-700</code></td><td>Button-Hover-Zustände</td></tr>
+        <tr><td><strong>Primary Light</strong></td><td>#EEF2FF</td><td><code>indigo-50</code></td><td>Hintergründe, Badges, Highlights</td></tr>
+        <tr><td><strong>Secondary</strong></td><td>#0F172A</td><td><code>slate-900</code></td><td>Headlines, Haupttext, Footer</td></tr>
+        <tr><td><strong>Accent (CTA)</strong></td><td>#059669</td><td><code>emerald-600</code></td><td>„In den Warenkorb", Success-States, Gratis-Versand</td></tr>
+        <tr><td><strong>Accent Hover</strong></td><td>#047857</td><td><code>emerald-700</code></td><td>Add-to-Cart-Hover</td></tr>
+        <tr><td><strong>Warning/Urgency</strong></td><td>#D97706</td><td><code>amber-600</code></td><td>Countdown, begrenzte Stückzahl, Angebote</td></tr>
+        <tr><td><strong>Background</strong></td><td>#FFFFFF</td><td><code>white</code></td><td>Haupt-Hintergrund</td></tr>
+        <tr><td><strong>Surface</strong></td><td>#F8FAFC</td><td><code>slate-50</code></td><td>Karten-Hintergrund, abwechselnde Sektionen</td></tr>
+        <tr><td><strong>Muted</strong></td><td>#F1F5F9</td><td><code>slate-100</code></td><td>Tags, Filter-Buttons, Secondary-Backgrounds</td></tr>
+        <tr><td><strong>Border</strong></td><td>#E2E8F0</td><td><code>slate-200</code></td><td>Karten-Ränder, Trennlinien, Input-Borders</td></tr>
+        <tr><td><strong>Text Primary</strong></td><td>#0F172A</td><td><code>slate-900</code></td><td>Alle Hauptüberschriften</td></tr>
+        <tr><td><strong>Text Secondary</strong></td><td>#475569</td><td><code>slate-600</code></td><td>Body-Text, Beschreibungen</td></tr>
+        <tr><td><strong>Text Muted</strong></td><td>#94A3B8</td><td><code>slate-400</code></td><td>Placeholder, Meta-Info, disabled States</td></tr>
+        <tr><td><strong>Old Red (deprecated)</strong></td><td>#E63946</td><td><code>red-500</code></td><td>Nur für echte Fehlermeldungen/Sale-Preise</td></tr>
+    </tbody>
+</table>
+
+<h3>Typografie</h3>
+
+<table>
+    <caption data-label="Tabelle 9">Typografie-System</caption>
+    <thead>
+        <tr><th>Element</th><th>Font</th><th>Größe</th><th>Gewicht</th><th>Zeilenabstand</th><th>Tailwind</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>H1 (Hero)</td><td>Inter</td><td>48px (3rem)</td><td>800</td><td>1.1</td><td><code>text-5xl font-extrabold leading-tight</code></td></tr>
+        <tr><td>H2 (Sektion)</td><td>Inter</td><td>32px (2rem)</td><td>700</td><td>1.2</td><td><code>text-3xl font-bold</code></td></tr>
+        <tr><td>H3 (Untersektion)</td><td>Inter</td><td>24px (1.5rem)</td><td>700</td><td>1.3</td><td><code>text-2xl font-bold</code></td></tr>
+        <tr><td>H4 (Card-Title)</td><td>Inter</td><td>18px (1.125rem)</td><td>600</td><td>1.4</td><td><code>text-lg font-semibold</code></td></tr>
+        <tr><td>Body</td><td>Inter</td><td>16px (1rem)</td><td>400</td><td>1.6</td><td><code>text-base leading-relaxed</code></td></tr>
+        <tr><td>Small/Caption</td><td>Inter</td><td>14px (0.875rem)</td><td>400</td><td>1.5</td><td><code>text-sm text-slate-600</code></td></tr>
+        <tr><td>XS (Badges)</td><td>Inter</td><td>12px (0.75rem)</td><td>600</td><td>1</td><td><code>text-xs font-semibold uppercase tracking-wide</code></td></tr>
+    </tbody>
+</table>
+
+<h3>Button-Komponenten</h3>
+
+<table>
+    <caption data-label="Tabelle 10">Button-Design-Spezifikation</caption>
+    <thead>
+        <tr><th>Typ</th><th>Background</th><th>Text</th><th>Border</th><th>Padding</th><th>Border-Radius</th><th>Hover</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><strong>Primary</strong></td><td><code>bg-indigo-600</code></td><td><code>text-white</code></td><td>none</td><td><code>px-6 py-3</code></td><td><code>rounded-lg</code></td><td><code>bg-indigo-700 shadow-lg</code></td></tr>
+        <tr><td><strong>Primary CTA</strong></td><td><code>bg-emerald-600</code></td><td><code>text-white</code></td><td>none</td><td><code>px-8 py-4</code></td><td><code>rounded-xl</code></td><td><code>bg-emerald-700 scale-[1.02]</code></td></tr>
+        <tr><td><strong>Secondary</strong></td><td><code>bg-white</code></td><td><code>text-slate-700</code></td><td><code>border-slate-200</code></td><td><code>px-6 py-3</code></td><td><code>rounded-lg</code></td><td><code>bg-slate-50</code></td></tr>
+        <tr><td><strong>Ghost</strong></td><td>transparent</td><td><code>text-indigo-600</code></td><td>none</td><td><code>px-4 py-2</code></td><td><code>rounded-md</code></td><td><code>bg-indigo-50</code></td></tr>
+        <tr><td><strong>Danger/Sale</strong></td><td><code>bg-red-50</code></td><td><code>text-red-600</code></td><td><code>border-red-200</code></td><td><code>px-4 py-2</code></td><td><code>rounded-lg</code></td><td><code>bg-red-100</code></td></tr>
+    </tbody>
+</table>
+
+<h3>Card-Komponente (Produktkachel)</h3>
+
+<pre style="background:#f8fafc; padding:14px; border-radius:8px; font-size:8.5pt; overflow-x:auto; white-space:pre-wrap; word-wrap:break-word;">
+&lt;!-- Produktkachel: Tailwind-Implementierung --&gt;
+&lt;div class="group bg-white rounded-2xl border border-slate-200 overflow-hidden 
+            hover:shadow-xl hover:border-indigo-200 transition-all duration-300
+            hover:-translate-y-1"&gt;
+  &lt;div class="relative aspect-square bg-slate-50 p-4"&gt;
+    &lt;img src="{produktbild}" class="w-full h-full object-contain 
+              group-hover:scale-105 transition-transform" /&gt;
+    &lt;!-- Badges --&gt;
+    &lt;span class="absolute top-3 left-3 bg-indigo-600 text-white text-xs 
+                 font-bold px-2.5 py-1 rounded-full"&gt;NEU&lt;/span&gt;
+    &lt;span class="absolute top-3 right-3 bg-emerald-100 text-emerald-700 
+                 text-xs font-bold px-2.5 py-1 rounded-full"&gt;-30%&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="p-4"&gt;
+    &lt;h3 class="text-sm font-semibold text-slate-900 line-clamp-2 mb-1"&gt;
+      {Produktname}
+    &lt;/h3&gt;
+    &lt;div class="flex items-center gap-1 mb-2"&gt;
+      &lt;div class="flex text-amber-400 text-xs"&gt;★★★★☆&lt;/div&gt;
+      &lt;span class="text-xs text-slate-500"&gt;({bewertungen})&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="flex items-baseline gap-2 mb-3"&gt;
+      &lt;span class="text-lg font-bold text-slate-900"&gt;{preis} €&lt;/span&gt;
+      &lt;span class="text-sm text-slate-400 line-through"&gt;{uvp} €&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white 
+                   font-semibold py-2.5 rounded-lg transition-colors
+                   flex items-center justify-center gap-2"&gt;
+      &lt;svg&gt;...&lt;/svg&gt;
+      In den Warenkorb
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+<h3>Spacing &amp; Grid-System</h3>
+
+<table>
+    <caption data-label="Tabelle 11">Spacing-Tokens</caption>
+    <thead>
+        <tr><th>Token</th><th>Wert</th><th>Verwendung</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>xs</td><td>4px</td><td>Icon-Gaps, Badge-Padding</td></tr>
+        <tr><td>sm</td><td>8px</td><td>Inline-Spacing, kleine Gaps</td></tr>
+        <tr><td>md</td><td>16px</td><td>Karten-Padding, Section-Gap</td></tr>
+        <tr><td>lg</td><td>24px</td><td>Grid-Gaps, Section-Padding</td></tr>
+        <tr><td>xl</td><td>40px</td><td>Sektions-Abstände</td></tr>
+        <tr><td>2xl</td><td>64px</td><td>Hero-Padding, große Sektionen</td></tr>
+    </tbody>
+</table>
+
+<h3>Breakpoints (Mobile-First)</h3>
+
+<table>
+    <caption data-label="Tabelle 12">Responsive Breakpoints</caption>
+    <thead>
+        <tr><th>Breakpoint</th><th>Width</th><th>Produkte/Grid</th><th>Anpassungen</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Mobile (default)</td><td>&lt; 640px</td><td>2 Spalten</td><td>Stacked Layout, Hamburger-Nav, Sticky CTA</td></tr>
+        <tr><td>sm</td><td>640px</td><td>2 Spalten</td><td>Leichte Erweiterung</td></tr>
+        <tr><td>md</td><td>768px</td><td>3 Spalten</td><td>Sidebar-Filter erscheint</td></tr>
+        <tr><td>lg</td><td>1024px</td><td>4 Spalten</td><td>Full Navigation, Hover-Effekte</td></tr>
+        <tr><td>xl</td><td>1280px</td><td>4–5 Spalten</td><td>Maximale Breite, Large-Images</td></tr>
+    </tbody>
+</table>
+
+<h2 id="sec4-2">4.2 Seiten-Spezifikationen</h2>
+
+<h3>Homepage</h3>
+
+<table>
+    <caption data-label="Tabelle 13">Homepage-Sektionen (top to bottom)</caption>
+    <thead>
+        <tr><th>#</th><th>Sektion</th><th>Inhalt</th><th>Tailwind-Notes</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td><strong>Announcement Bar</strong></td><td>Gratis Versand ab 29 € | 14 Tage Rückgabe | Code: TECH10 für 10% Rabatt</td><td><code>bg-slate-900 text-white text-center py-2 text-sm</code></td></tr>
+        <tr><td>2</td><td><strong>Navigation</strong></td><td>Logo | Kategorien-Dropdown | Suche | Konto | Warenkorb mit Badge</td><td><code>sticky top-0 z-50 bg-white/95 backdrop-blur border-b</code></td></tr>
+        <tr><td>3</td><td><strong>Hero</strong></td><td>Split: Text links (H1: „Premium MagSafe-Zubehör", CTA, Trust-Pills) | Bild rechts (Produkt-Mockup)</td><td><code>grid lg:grid-cols-2 gap-12 py-16</code></td></tr>
+        <tr><td>4</td><td><strong>Trust-Bar</strong></td><td>4 Icons: Gratis Versand, 14 Tage Rückgabe, Sichere Zahlung, Premium Qualität</td><td><code>bg-slate-50 py-6 border-y</code></td></tr>
+        <tr><td>5</td><td><strong>Kategorien-Grid</strong></td><td>6 Kategoriekacheln mit Icon + Name + Produktanzahl</td><td><code>grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4</code></td></tr>
+        <tr><td>6</td><td><strong>Bestseller</strong></td><td>Produkt-Slider mit 4–8 Produkten, „Bestseller"-Badge</td><td><code>py-16</code> mit Swiper/Carousel</td></tr>
+        <tr><td>7</td><td><strong>Angebote/Flash</strong></td><td>Countdown-Timer + 4 reduzierte Produkte</td><td>Orange-Akzente für Dringlichkeit</td></tr>
+        <tr><td>8</td><td><strong>MagSafe-Highlight</strong></td><td>Dedizierte MagSafe-Sektion mit USPs und 4 Produkte</td><td>Indigo-Accent-Hintergrund</td></tr>
+        <tr><td>9</td><td><strong>Social Proof</strong></td><td>Bewertungs-Widget + Kundenfotos + Statistik (z.B. „15.000+ zufriedene Kunden")</td><td>Vertrauensbildend</td></tr>
+        <tr><td>10</td><td><strong>Newsletter</strong></td><td>„10% auf erste Bestellung" + E-Mail-Input + WhatsApp-Option</td><td><code>bg-indigo-50 rounded-2xl p-8</code></td></tr>
+        <tr><td>11</td><td><strong>Footer</strong></td><td>4 Spalten: Shop | Service | Rechtlich | Zahlung + Trusted Shops Widget</td><td><code>bg-slate-900 text-slate-300</code></td></tr>
+    </tbody>
+</table>
+
+<h3>Produktlisting-Seite (PLP)</h3>
+
+<ul>
+    <li><strong>Breadcrumb-Navigation:</strong> Startseite > Kategorie > Unterkategorie</li>
+    <li><strong>Filter-Sidebar (lg+):</strong> Preis (Range-Slider), Marke, Kompatibilität, Bewertung, Farbe, Material</li>
+    <li><strong>Sortierung:</strong> Beliebtheit | Preis aufsteigend | Preis absteigend | Neueste | Bestbewertet</li>
+    <li><strong>Produkt-Grid:</strong> 2 (mobile) / 3 (md) / 4 (lg) Spalten mit Infinite Scroll oder Pagination</li>
+    <li><strong>Quick-View:</strong> Modal mit Hauptbild, Preis, Kurzbeschreibung, „In den Warenkorb"</li>
+    <li><strong>SEO-Text:</strong> 200–300 Worte über Kategorie unterhalb der Produkte</li>
+</ul>
+
+<h3>Produktdetailseite (PDP)</h3>
+
+<p>Die PDP ist die wichtigste Seite für Conversion. Orientierung an MediaMarkt/Saturn Best Practices:</p>
+
+<table>
+    <caption data-label="Tabelle 14">PDP-Sektionen von oben nach unten</caption>
+    <thead>
+        <tr><th>#</th><th>Element</th><th>Spezifikation</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td><strong>Breadcrumb</strong></td><td>Pfad zur aktuellen Kategorie</td></tr>
+        <tr><td>2</td><td><strong>Bildergalerie</strong></td><td>Hauptbild groß links + Thumbnails unten; Zoom on Hover; Video-Tab</td></tr>
+        <tr><td>3</td><td><strong>Produkt-Info (rechts)</strong></td><td>Name, SKU, Bewertung (Sterne + Anzahl), Preis groß, UVP durchgestrichen</td></tr>
+        <tr><td>4</td><td><strong>Varianten</strong></td><td>Farbe als Swatches (nicht Dropdown); Modell als Chips</td></tr>
+        <tr><td>5</td><td><strong>Mengenwahl + CTA</strong></td><td>Quantity-Stepper + großer grüner „In den Warenkorb" + kleiner „Auf Wunschliste"</td></tr>
+        <tr><td>6</td><td><strong>Trust-Pills</strong></td><td>4 Icons: Versand, Retoure, SSL, Käuferschutz</td></tr>
+        <tr><td>7</td><td><strong>Lieferinfo</strong></td><td>„Voraussichtliche Lieferung: [Datum]" statt „3–7 Tage"</td></tr>
+        <tr><td>8</td><td><strong>Zahlungsmethoden</strong></td><td>PayPal, Klarna, Kreditkarte, SEPA-Logos (klein)</td></tr>
+        <tr><td>9</td><td><strong>Sticky CTA (Mobile)</strong></td><td>Fixierte Leiste mit Preis + „In den Warenkorb"</td></tr>
+        <tr><td>10</td><td><strong>Beschreibung</strong></td><td>Formatierter Text mit Bullet Points, nicht nur Absätze</td></tr>
+        <tr><td>11</td><td><strong>Spezifikationen</strong></td><td>Tabelle: Material, Gewicht, Abmessungen, Kompatibilität</td></tr>
+        <tr><td>12</td><td><strong>Kundenbewertungen</strong></td><td>Filter nach Sternen, Fotos, „Verifizierter Kauf"-Badge</td></tr>
+        <tr><td>13</td><td><strong>Cross-Sell</strong></td><td>„Passt dazu" / „Kunden kauften auch" (4 Produkte)</td></tr>
+        <tr><td>14</td><td><strong>Upsell</strong></td><td>„Premium-Alternative" oder „Bundle &amp; spare 15%"</td></tr>
+    </tbody>
+</table>
+
+<h3>Warenkorb &amp; Checkout</h3>
+
+<ul>
+    <li><strong>Warenkorb-Seite:</strong> Produktbilder, Mengenänderung, Entfernen-Button, Gutschein-Code-Input, Zwischensumme, Versandkosten, Gesamtsumme</li>
+    <li><strong>Trust-Elemente im Checkout:</strong> SSL-Badge, „Sichere SSL-verchlüsselte Zahlung", PayPal/Klarna prominente Platzierung</li>
+    <li><strong>Checkout-Steps:</strong> 1. Lieferadresse | 2. Versandart (Standard/Express) | 3. Zahlung | 4. Bestellübersicht</li>
+    <li><strong>Fortschrittsbalken:</strong> Visuelle 4-Schritt-Anzeige oben</li>
+    <li><strong>Gratis-Versand-Progress:</strong> „Noch 12,50 € bis zum Gratis-Versand"-Balken animiert</li>
+    <li><strong>Express-Checkout:</strong> PayPal-Express und Apple Pay/Google Pay als prominente Buttons</li>
+    <li><strong>Adress-Autocomplete:</strong> Deutsche Post-Adress-API für schnelleres Ausfüllen</li>
+</ul>
+
+<h2 id="sec4-3">4.3 Trust Signals für Deutschland</h2>
+
+<h3>Zertifizierungen &amp; Badges</h3>
+
+<ol>
+    <li><strong>Trusted Shops Gütesiegel</strong> (Kosten: ab ~30 €/Monat)
+        <ul>
+            <li>Inkl. Käuferschutz (bis 2.500 €)</li>
+            <li>Bewertungssiegel mit Sternen</li>
+            <li>Platzierung: Footer + Checkout-Seite + PDP (neben Preis)</li>
+        </ul>
+    </li>
+    <li><strong>EHI Geprüfter Online-Shop</strong> (Alternativ zu Trusted Shops)</li>
+    <li><strong>TÜV Saarland/ Rheinland Geprüft</strong> (Für Shops mit hohem Budget)</li>
+</ol>
+
+<h3>Zahlungsmethoden-Präsenz</h3>
+
+<p>Alle Zahlungslogos müssen <strong>sichtbar</strong> sein auf: Footer, PDP, Warenkorb, Checkout.</p>
+
+<table>
+    <caption data-label="Tabelle 15">Zahlungsmethoden-Priorität für TechLaden.de</caption>
+    <thead>
+        <tr><th>Priorität</th><th>Methode</th><th>Implementation</th><th>Nutzeranteil</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>1 (Must-Have)</td><td><strong>PayPal</strong></td><td>PayPal Checkout SDK (Express-Button)</td><td>~28–64%</td></tr>
+        <tr><td>2 (Must-Have)</td><td><strong>Klarna</strong></td><td>Klarna Payments API (Pay Later + Slice)</td><td>~28–45%</td></tr>
+        <tr><td>3 (Must-Have)</td><td><strong>Kreditkarte</strong></td><td>Stripe Card Element (3D Secure 2.0)</td><td>~25–28%</td></tr>
+        <tr><td>4 (Wichtig)</td><td><strong>SEPA-Lastschrift</strong></td><td>Stripe SEPA Direct Debit</td><td>~17–23%</td></tr>
+        <tr><td>5 (Wichtig)</td><td><strong>Apple Pay / Google Pay</strong></td><td>Stripe Payment Request Button</td><td>~17% (wachsend)</td></tr>
+        <tr><td>6 (Optional)</td><td><strong>Rechnungskauf</strong></td><td>Klarna Invoice oder Billpay</td><td>~44% erwarten es</td></tr>
+    </tbody>
+</table>
+
+<h3>Rückgaberegelung</h3>
+
+<p>Deutsche Konsumenten erwarten:</p>
+<ul>
+    <li><strong>14 Tage Widerrufsrecht</strong> (gesetzlich vorgeschrieben –  312g BGB)</li>
+    <li><strong>Kostenlose Retoure</strong> (74% betrachten dies als kritisch, auch wenn gesetzlich nicht vorgeschrieben)</li>
+    <li><strong>Visueller Ablauf:</strong> Schritt-für-Schritt-Grafik: 1. Retoure anmelden 2. Label herunterladen 3. Abgeben bei DHL 4. Erstattung in 3–5 Tagen</li>
+    <li><strong>Erstattungsdauer:</strong> Max. 14 Tage nach Wareneingang (besser: 3–5 Tage)</li>
+</ul>
+
+<h3>Versandzeit-Kommunikation</h3>
+
+<p>Statt „3–7 Werktage" (nicht glaubwürdig bei AliExpress):</p>
+
+<table>
+    <caption data-label="Tabelle 16">Versandkommunikation-Strategie</caption>
+    <thead>
+        <tr><th>Element</th><th>Empfohlene Formulierung</th><th>Psychologie</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Lieferzeit-Angabe</td><td>„Lieferung in 7–14 Werktagen" (pessimistisch, übererfuellen)</td><td>Under-Promise, Over-Deliver</td></tr>
+        <tr><td>Voraussichtliches Datum</td><td>„Voraussichtliche Lieferung: 24. April – 28. April"</td><td>Konkret statt abstrakt</td></tr>
+        <tr><td>Versand-Herkunft</td><td>„Versand aus unserem EU-Lager" (wenn möglich)</td><td>EU = Vertrauen</td></tr>
+        <tr><td>Tracking</td><td>„Inkl. Sendungsverfolgung per E-Mail"</td><td>Kontrolle &amp; Transparenz</td></tr>
+        <tr><td>Qualitätskontrolle</td><td>„Jedes Produkt wird vor Versand geprüft"</td><td>Qualitätsversprechen</td></tr>
+    </tbody>
+</table>
+
+<h3>Rechtliche Pflichtseiten</h3>
+
+<p>Die folgenden Seiten sind <strong>gesetzlich verpflichtend</strong> für jeden deutschen E-Commerce:</p>
+
+<ol>
+    <li><strong>Impressum</strong> (  5 DDG) – Vollständige Firmenangaben, USt-ID, Geschäftsführer</li>
+    <li><strong>Datenschutzerklärung</strong> (DSGVO/TDDDG) – Cookies, Tracking, Datenweitergabe</li>
+    <li><strong>Widerrufsbelehrung</strong> (  312g BGB) – Muster-Widerrufsformular</li>
+    <li><strong>AGB</strong> – Zahlung, Versand, Gewährleistung, Haftung</li>
+    <li><strong>Versandkosten</strong> – Tabelle mit Kosten und Lieferzeiten pro Land</li>
+    <li><strong>Zahlungsarten</strong> – Übersicht akzeptierter Zahlungsmethoden</li>
+    <li><strong>Cookie-Einstellungen</strong> – Granulärer Cookie-Manager (Opt-in)</li>
+    <li><strong>Barrierefreiheitserklärung</strong> (BFSG ab 28.06.2025) – WCAG 2.1 Level AA</li>
+</ol>
+
+<div class="warning-box">
+    <div class="info-box-title">BFSG-Hinweis (Barrierefreiheitsstärkungsgesetz)</div>
+    <p>Seit dem 28. Juni 2025 müssen E-Commerce-Shops in Deutschland den WCAG 2.1 Level AA Standards entsprechen. Mikrounternehmen (&lt;10 Mitarbeiter, &lt;2 Mio. € Umsatz) sind ausgenommen. Trotzdem empfohlen: Kontraste mindestens 4.5:1, Tastatur-Navigation, Alt-Texte für Bilder, ARIA-Labels.</p>
+</div>
+
+<div class="page-break"></div>

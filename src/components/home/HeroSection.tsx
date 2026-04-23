@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Check } from 'lucide-react';
+import CountdownTimer from '@/components/ui/CountdownTimer';
 
 const HERO_IMAGES = [
   'https://picsum.photos/seed/case1/300/300',
@@ -9,28 +10,34 @@ const HERO_IMAGES = [
   'https://picsum.photos/seed/power1/300/300',
 ];
 
+const TRUST_PILLS = ['Schnelle Lieferung', '14 Tage Rückgabe', 'Sichere Zahlung', 'Trusted Shop'];
+
 export default function HeroSection() {
   return (
     <section className="bg-white border-b border-border">
       <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         {/* Left */}
         <div>
-          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary bg-red-50 border border-red-100 px-3 py-1.5 rounded-full mb-5">
-            ⚡ Neu eingetroffen
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-error px-3 py-1.5 rounded-full mb-4 animate-pulse">
+            🔥 FLASH SALE — Bis zu 40% Rabatt
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-text-main leading-tight mb-4">
             Premium<br />
             <span className="text-primary">Handy-Zubehör</span>
           </h1>
-          <p className="text-lg text-text-secondary leading-relaxed mb-6 max-w-md">
+          <p className="text-lg text-text-secondary leading-relaxed mb-4 max-w-md">
             Hochwertige Hüllen, Ladegeräte und Kabel für dein Smartphone. Schnelle Lieferung, faire Preise.
           </p>
 
-          {/* Trust badges */}
+          <div className="mb-5">
+            <CountdownTimer label="Sale endet in:" />
+          </div>
+
+          {/* Trust pills */}
           <div className="flex flex-wrap gap-3 mb-8">
-            {['Schnelle Lieferung', '14 Tage Rückgabe', 'Sichere Zahlung'].map((t) => (
+            {TRUST_PILLS.map((t) => (
               <span key={t} className="flex items-center gap-1.5 text-sm text-text-secondary">
-                <Check className="w-4 h-4 text-success flex-shrink-0" />
+                <Check className="w-4 h-4 text-cta flex-shrink-0" />
                 {t}
               </span>
             ))}
@@ -38,7 +45,7 @@ export default function HeroSection() {
 
           <Link
             href="/#produkte"
-            className="btn-primary inline-flex items-center gap-2 px-7 py-3.5 text-base"
+            className="btn-cta inline-flex items-center gap-2 px-7 py-3.5 text-base"
           >
             Jetzt shoppen <ArrowRight className="w-5 h-5" />
           </Link>

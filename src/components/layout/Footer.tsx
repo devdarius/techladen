@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Zap, Instagram, Twitter, Facebook } from 'lucide-react';
 
+const CATEGORIES = ['MagSafe', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Gaming', 'Smartwatch', 'Zubehör'];
+
 export default function Footer() {
   return (
     <footer className="bg-surface border-t border-border mt-16">
@@ -33,7 +35,7 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-text-main mb-3">Kategorien</h3>
             <ul className="space-y-2 text-sm text-text-secondary">
-              {['Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'].map((cat) => (
+              {CATEGORIES.map((cat) => (
                 <li key={cat}>
                   <Link href={`/?kategorie=${cat}`} className="hover:text-primary transition-colors">
                     {cat}
@@ -70,6 +72,20 @@ export default function Footer() {
               <li><span>14 Tage Rückgabe</span></li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* Payment logos */}
+      <div className="border-t border-border">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-center gap-3">
+          {['PayPal', 'Klarna', 'Visa', 'Mastercard', 'Apple Pay', 'Google Pay'].map((method) => (
+            <span
+              key={method}
+              className="px-3 py-1.5 bg-white border border-border rounded text-xs font-semibold text-text-secondary"
+            >
+              {method}
+            </span>
+          ))}
         </div>
       </div>
 

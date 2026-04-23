@@ -10,6 +10,16 @@ interface Props {
   product: Product;
 }
 
+function hashSlug(slug: string): number {
+  let h = 5381;
+  for (let i = 0; i < slug.length; i++) h = ((h << 5) + h) ^ slug.charCodeAt(i);
+  return Math.abs(h);
+}
+
+function fakeOriginalPrice(price: number): number {
+  return Math.floor(price * 1.35) + 0.99;
+}
+
 export default function ProductCard({ product }: Props) {
   const { addItem } = useCartStore();
 
@@ -18,7 +28,12 @@ export default function ProductCard({ product }: Props) {
     addItem(product);
   };
 
-  const badge = (product as Product & { badge?: string }).badge;
+  const badge = product.badge;
+  const h = hashSlug(product.slug);
+  const stock = 2 + (h % 6); // 2-7
+  const sold = 50 + (h % 451); // 50-500
+  const original = fakeOriginalPrice(product.price.eur);
+  const discountPct = Math.round(((original - product.price.eur) / original) * 100);
 
   return (
     <Link
@@ -48,6 +63,10 @@ export default function ProductCard({ product }: Props) {
           </span>
         )}
 
+        <span className="absolute top-3 right-3 bg-error text-white text-xs font-bold px-2 py-1 rounded-full">
+          -{discountPct}%
+        </span>
+
         {!product.inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="text-text-secondary font-semibold text-sm bg-white px-3 py-1 rounded-full border border-border">
@@ -72,22 +91,32 @@ export default function ProductCard({ product }: Props) {
             />
           ))}
           <span className="text-xs text-text-secondary ml-1">4.5</span>
+          <span className="text-xs text-text-secondary ml-1">· {sold} verkauft</span>
         </div>
 
         {/* Price */}
-        <div className="flex items-end justify-between gap-2">
+        <div className="flex items-end justify-between gap-2 mb-1">
           <div>
-            <p className="text-xl font-bold text-primary">
-              {product.price.eur.toFixed(2).replace('.', ',')} €
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-xl font-bold text-error">
+                {product.price.eur.toFixed(2).replace('.', ',')} €
+              </p>
+              <p className="text-sm text-text-secondary line-through">
+                {original.toFixed(2).replace('.', ',')} €
+              </p>
+            </div>
             <p className="text-xs text-text-secondary">inkl. MwSt.</p>
           </div>
         </div>
 
+        {stock <= 5 && product.inStock && (
+          <p className="text-xs font-semibold text-urgency mb-2">⚠️ Nur noch {stock} Stück!</p>
+        )}
+
         <button
           onClick={handleAdd}
           disabled={!product.inStock}
-          className="btn-primary w-full mt-3 py-2.5 flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-cta w-full mt-2 py-2.5 flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ShoppingCart className="w-4 h-4" />
           In den Warenkorb

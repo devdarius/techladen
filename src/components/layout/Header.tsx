@@ -6,7 +6,7 @@ import { ShoppingCart, Search, Zap, Menu, X, ChevronDown, User } from 'lucide-re
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
 
-const CATEGORIES = ['Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'];
+const CATEGORIES = ['MagSafe', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Gaming', 'Smartwatch', 'Zubehör'];
 
 export default function Header() {
   const { items, openCart } = useCartStore();

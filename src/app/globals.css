@@ -4,14 +4,18 @@
 @tailwind utilities;
 
 :root {
-  --primary: #E63946;
-  --primary-dark: #C1121F;
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --cta: #059669;
+  --cta-dark: #047857;
+  --urgency: #D97706;
+  --error: #E63946;
   --bg: #FFFFFF;
-  --surface: #F8F9FA;
-  --border: #E9ECEF;
+  --surface: #F8FAFC;
+  --border: #E2E8F0;
   --text: #1A1A2E;
   --text-secondary: #6C757D;
-  --success: #2ECC71;
+  --success: #059669;
   --shadow: 0 2px 12px rgba(0,0,0,0.08);
   --shadow-hover: 0 8px 24px rgba(0,0,0,0.14);
 }
@@ -48,5 +52,19 @@ body {
   background: var(--primary-dark);
 }
 .btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-cta {
+  background: var(--cta);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.btn-cta:hover {
+  background: var(--cta-dark);
+}
+.btn-cta:active {
   transform: scale(0.98);
 }

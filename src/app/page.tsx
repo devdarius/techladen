@@ -7,6 +7,9 @@ import CategoryFilter from '@/components/product/CategoryFilter';
 import TrustSection from '@/components/home/TrustSection';
 import HeroSection from '@/components/home/HeroSection';
 import NewsletterSection from '@/components/home/NewsletterSection';
+import FlashSaleSection from '@/components/home/FlashSaleSection';
+import CategoryShowcase from '@/components/home/CategoryShowcase';
+import RecentlyViewed from '@/components/home/RecentlyViewed';
 
 export const metadata: Metadata = {
   title: 'TechLaden.de – Premium Handy-Zubehör',
@@ -19,7 +22,7 @@ export const metadata: Metadata = {
   },
 };
 
-const CATEGORIES = ['Alle', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Zubehör'];
+const CATEGORIES = ['Alle', 'MagSafe', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Gaming', 'Smartwatch', 'Zubehör'];
 
 function normalize(id: string, data: FirebaseFirestore.DocumentData): Product {
   return {
@@ -64,18 +67,28 @@ export default async function HomePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const category = params.kategorie ?? 'Alle';
   const products = await getProducts(category);
+  const allProducts = category === 'Alle' ? products : await getProducts();
 
   return (
     <>
+      {/* 1. Hero with flash sale + countdown */}
       <HeroSection />
 
-      <section className="max-w-7xl mx-auto px-4 py-10">
-        {/* Category filter */}
+      {/* 2. Trust bar */}
+      <TrustSection />
+
+      {/* 3. Category showcase */}
+      <CategoryShowcase />
+
+      {/* 4. Flash Sale Section */}
+      <FlashSaleSection products={allProducts} />
+
+      {/* 5. Category filter + All products */}
+      <section id="produkte" className="max-w-7xl mx-auto px-4 py-10">
         <Suspense>
           <CategoryFilter categories={CATEGORIES} active={category} />
         </Suspense>
 
-        {/* Products */}
         <div className="mt-8">
           <h2 className="text-2xl font-bold text-text-main mb-6 flex items-center gap-2">
             🔥 Bestseller
@@ -99,7 +112,13 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       </section>
 
+      {/* 6. Trust section again */}
       <TrustSection />
+
+      {/* 7. Recently viewed */}
+      <RecentlyViewed />
+
+      {/* 8. Newsletter */}
       <NewsletterSection />
     </>
   );
