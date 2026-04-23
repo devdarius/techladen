@@ -4,7 +4,7 @@ import { getFirestore } from '@/lib/firebase-admin';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 import type { Order } from '@/types/user';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').trim());
 
 export async function POST(request: Request) {
   const body = await request.text();

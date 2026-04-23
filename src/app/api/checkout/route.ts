@@ -5,7 +5,7 @@ import { sendPaymentRequestEmail } from '@/lib/email';
 import type { CartItem } from '@/types/product';
 import type { Order } from '@/types/user';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').trim());
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://techladen.de';
 
 export async function POST(request: Request) {
