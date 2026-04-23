@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { Loader2, Lock, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
+import { useCouponStore } from '@/lib/coupon-store';
+import CouponInput from '@/components/cart/CouponInput';
 
 // ─── Validation helpers ───────────────────────────────────────
 function validateField(name: string, value: string, country: string): string {
@@ -110,6 +112,7 @@ export default function KassePage() {
   const router = useRouter();
   const { items, total } = useCartStore();
   const { user } = useAuthStore();
+  const { coupon, discount, clear: clearCoupon } = useCouponStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -178,8 +181,8 @@ export default function KassePage() {
     return Object.values(newErrors).every((e) => !e);
   };
 
-  const shipping = total() >= 29 ? 0 : 4.99;
-  const grandTotal = total() + shipping;
+  const shipping = total() >= 29 || coupon?.type === 'free_shipping' ? 0 : 4.99;
+  const grandTotal = Math.max(0, total() - discount + shipping);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,7 +200,7 @@ export default function KassePage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingAddress }),
+        body: JSON.stringify({ items, shippingAddress, couponCode: coupon?.code ?? null }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }

@@ -5,9 +5,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { X, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
+import { useCouponStore } from '@/lib/coupon-store';
+import CouponInput from './CouponInput';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, total } = useCartStore();
+  const { coupon, discount } = useCouponStore();
   const [toast, setToast] = useState(false);
 
   useEffect(() => {
@@ -109,10 +112,19 @@ export default function CartDrawer() {
                 Noch <strong className="text-primary">{(29 - total()).toFixed(2).replace('.', ',')} €</strong> bis zum kostenlosen Versand
               </div>
             )}
+
+            <CouponInput />
+
             <div className="flex justify-between text-sm">
               <span className="text-text-secondary">Zwischensumme</span>
               <span className="font-bold text-text-main">{total().toFixed(2).replace('.', ',')} €</span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-emerald-600 font-medium">
+                <span>Rabatt ({coupon?.code})</span>
+                <span>−{discount.toFixed(2).replace('.', ',')} €</span>
+              </div>
+            )}
             <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
 
             <Link

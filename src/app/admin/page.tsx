@@ -5,10 +5,11 @@ import Image from 'next/image';
 import {
   Lock, Package, Trash2, RefreshCw, Plus, BarChart2,
   ShoppingBag, DollarSign, Loader2, LogOut, Eye, EyeOff,
-  Users, ClipboardList, ChevronDown, Truck, Search, Link2,
+  Users, ClipboardList, ChevronDown, Truck, Search, Link2, Tag,
 } from 'lucide-react';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/user';
+import type { Coupon, CouponType } from '@/types/coupon';
 
 interface AdminUser {
   uid: string; email: string; firstName: string; lastName: string; createdAt: string; phone?: string;
@@ -36,7 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled:  'bg-red-100 text-red-800',
 };
 
-type Tab = 'dashboard' | 'produkty' | 'uzytkownicy' | 'zamowienia' | 'aliexpress';
+type Tab = 'dashboard' | 'produkty' | 'uzytkownicy' | 'zamowienia' | 'aliexpress' | 'kupony';
 
 // ─── Main component ───────────────────────────────────────────
 export default function AdminPage() {
@@ -63,6 +64,16 @@ export default function AdminPage() {
   const [searching, setSearching] = useState(false);
   const [fulfilling, setFulfilling] = useState<string | null>(null);
 
+  // Coupons
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponForm, setCouponForm] = useState({
+    code: '', type: 'percent' as CouponType, value: 10,
+    minOrderValue: 0, maxUses: 0, maxUsesPerUser: 1,
+    expiresAt: '', onlyNewCustomers: false, category: '', description: '',
+  });
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponError, setCouponError] = useState('');
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'x-admin-password': password,
@@ -71,15 +82,17 @@ export default function AdminPage() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, uRes, oRes] = await Promise.all([
+      const [pRes, uRes, oRes, cRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/admin/users', { headers: headers() }),
         fetch('/api/admin/orders', { headers: headers() }),
+        fetch('/api/coupons', { headers: headers() }),
       ]);
-      const [p, u, o] = await Promise.all([pRes.json(), uRes.json(), oRes.json()]);
+      const [p, u, o, c] = await Promise.all([pRes.json(), uRes.json(), oRes.json(), cRes.json()]);
       setProducts(Array.isArray(p) ? p : []);
       setUsers(Array.isArray(u) ? u : []);
       setOrders(Array.isArray(o) ? o : []);
+      setCoupons(Array.isArray(c) ? c : []);
     } catch { /* ignore */ }
     finally { setLoading(false); }
   }, [headers]);
@@ -166,6 +179,38 @@ export default function AdminPage() {
     finally { setSearching(false); }
   };
 
+  const createCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponMsg(''); setCouponError('');
+    try {
+      const res = await fetch('/api/coupons', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          ...couponForm,
+          expiresAt: couponForm.expiresAt || null,
+          category: couponForm.category || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setCouponError(data.error); return; }
+      setCouponMsg(`✓ Kupon "${data.code}" utworzony!`);
+      setCouponForm({ code: '', type: 'percent', value: 10, minOrderValue: 0, maxUses: 0, maxUsesPerUser: 1, expiresAt: '', onlyNewCustomers: false, category: '', description: '' });
+      loadAll();
+    } catch { setCouponError('Błąd serwera'); }
+  };
+
+  const toggleCoupon = async (code: string, active: boolean) => {
+    await fetch('/api/coupons', { method: 'PATCH', headers: headers(), body: JSON.stringify({ code, active }) });
+    setCoupons((c) => c.map((x) => x.code === code ? { ...x, active } : x));
+  };
+
+  const deleteCoupon = async (code: string) => {
+    if (!confirm(`Usunąć kupon "${code}"?`)) return;
+    await fetch('/api/coupons', { method: 'DELETE', headers: headers(), body: JSON.stringify({ code }) });
+    setCoupons((c) => c.filter((x) => x.code !== code));
+  };
+
   const handleFulfill = async (orderId: string) => {
     if (!confirm('Automatycznie złożyć zamówienie na AliExpress?')) return;
     setFulfilling(orderId);
@@ -237,6 +282,7 @@ export default function AdminPage() {
     { id: 'produkty',     label: 'Produkty',     icon: Package },
     { id: 'uzytkownicy',  label: 'Użytkownicy',  icon: Users },
     { id: 'zamowienia',   label: 'Zamówienia',   icon: ClipboardList },
+    { id: 'kupony',       label: 'Kupony',        icon: Tag },
     { id: 'aliexpress',   label: 'AliExpress',   icon: Link2 },
   ];
 
@@ -514,6 +560,166 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+        {/* ── KUPONY ── */}
+        {tab === 'kupony' && (
+          <div className="space-y-5">
+            <h2 className="text-xl font-bold text-text-main">Kody rabatowe</h2>
+
+            {/* Create form */}
+            <div className="bg-white rounded-card border border-border p-6 shadow-card">
+              <h3 className="font-semibold text-text-main mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-primary" /> Nowy kupon
+              </h3>
+              <form onSubmit={createCoupon} className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Kod *</label>
+                    <input value={couponForm.code} onChange={(e) => setCouponForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                      placeholder="WILLKOMMEN10" required
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary uppercase" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Typ</label>
+                    <select value={couponForm.type} onChange={(e) => setCouponForm(f => ({ ...f, type: e.target.value as CouponType }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
+                      <option value="percent">% Rabatt</option>
+                      <option value="fixed">€ Rabatt (stały)</option>
+                      <option value="free_shipping">Darmowa wysyłka</option>
+                    </select>
+                  </div>
+                  {couponForm.type !== 'free_shipping' && (
+                    <div>
+                      <label className="block text-xs font-medium text-text-secondary mb-1">
+                        Wartość {couponForm.type === 'percent' ? '(%)' : '(€)'}
+                      </label>
+                      <input type="number" min="1" value={couponForm.value}
+                        onChange={(e) => setCouponForm(f => ({ ...f, value: Number(e.target.value) }))}
+                        className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Min. wartość koszyka (€)</label>
+                    <input type="number" min="0" value={couponForm.minOrderValue}
+                      onChange={(e) => setCouponForm(f => ({ ...f, minOrderValue: Number(e.target.value) }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Maks. użyć (0 = bez limitu)</label>
+                    <input type="number" min="0" value={couponForm.maxUses}
+                      onChange={(e) => setCouponForm(f => ({ ...f, maxUses: Number(e.target.value) }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Maks. użyć / użytkownik</label>
+                    <input type="number" min="0" value={couponForm.maxUsesPerUser}
+                      onChange={(e) => setCouponForm(f => ({ ...f, maxUsesPerUser: Number(e.target.value) }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Data wygaśnięcia</label>
+                    <input type="date" value={couponForm.expiresAt}
+                      onChange={(e) => setCouponForm(f => ({ ...f, expiresAt: e.target.value }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-secondary mb-1">Kategoria (opcjonalnie)</label>
+                    <select value={couponForm.category} onChange={(e) => setCouponForm(f => ({ ...f, category: e.target.value }))}
+                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
+                      <option value="">Wszystkie kategorie</option>
+                      {['MagSafe','Hüllen','Ladegeräte','Kabel','Schutzglas','Powerbanks','Gaming','Smartwatch'].map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 pt-5">
+                    <input type="checkbox" id="newCustomers" checked={couponForm.onlyNewCustomers}
+                      onChange={(e) => setCouponForm(f => ({ ...f, onlyNewCustomers: e.target.checked }))}
+                      className="rounded" />
+                    <label htmlFor="newCustomers" className="text-xs text-text-secondary">Tylko nowi klienci</label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-1">Opis (notatka wewnętrzna)</label>
+                  <input value={couponForm.description} onChange={(e) => setCouponForm(f => ({ ...f, description: e.target.value }))}
+                    placeholder="np. Kod powitalny dla nowych klientów"
+                    className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
+                </div>
+                {couponMsg && <p className="text-green-600 text-sm font-medium">{couponMsg}</p>}
+                {couponError && <p className="text-red-500 text-sm">{couponError}</p>}
+                <button type="submit" className="btn-primary px-6 py-2.5 text-sm flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Utwórz kupon
+                </button>
+              </form>
+            </div>
+
+            {/* Coupons list */}
+            <div className="bg-white rounded-card border border-border shadow-card overflow-hidden">
+              <div className="px-5 py-4 border-b border-border">
+                <h3 className="font-semibold text-text-main">Aktywne kupony ({coupons.length})</h3>
+              </div>
+              {coupons.length === 0 ? (
+                <p className="p-8 text-center text-text-secondary text-sm">Brak kuponów.</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {coupons.map((c) => (
+                    <div key={c.id} className="flex items-center gap-4 px-5 py-3 hover:bg-surface transition-colors flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-bold text-sm text-text-main bg-slate-100 px-2 py-0.5 rounded">{c.code}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                            {c.active ? 'Aktywny' : 'Nieaktywny'}
+                          </span>
+                          <span className="text-xs text-text-secondary bg-slate-100 px-2 py-0.5 rounded">
+                            {c.type === 'percent' && `-${c.value}%`}
+                            {c.type === 'fixed' && `-${c.value}€`}
+                            {c.type === 'free_shipping' && 'Darmowa wysyłka'}
+                          </span>
+                          {c.category && <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{c.category}</span>}
+                          {c.onlyNewCustomers && <span className="text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded">Nowi klienci</span>}
+                        </div>
+                        <p className="text-xs text-text-secondary mt-1">
+                          Użyto: {c.usedCount}/{c.maxUses || '∞'} · Min: {c.minOrderValue}€
+                          {c.expiresAt && ` · Wygasa: ${new Date(c.expiresAt).toLocaleDateString('pl-PL')}`}
+                          {c.description && ` · ${c.description}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button onClick={() => toggleCoupon(c.code, !c.active)}
+                          className={`text-xs px-3 py-1.5 rounded-btn border transition-colors ${c.active ? 'border-red-200 text-red-500 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}>
+                          {c.active ? 'Dezaktywuj' : 'Aktywuj'}
+                        </button>
+                        <button onClick={() => deleteCoupon(c.code)}
+                          className="p-1.5 rounded-btn text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Preset coupons */}
+            <div className="bg-indigo-50 border border-indigo-200 rounded-card p-4 text-sm text-indigo-800">
+              <p className="font-semibold mb-2">Gotowe kody do szybkiego tworzenia:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { code: 'WILLKOMMEN10', type: 'percent', value: 10, desc: 'Powitanie nowych klientów' },
+                  { code: 'SOMMER20', type: 'percent', value: 20, desc: 'Letnia promocja' },
+                  { code: 'GRATIS', type: 'free_shipping', value: 0, desc: 'Darmowa wysyłka' },
+                  { code: 'TREUE5', type: 'fixed', value: 5, desc: '5€ dla stałych klientów' },
+                ].map((preset) => (
+                  <button key={preset.code}
+                    onClick={() => setCouponForm(f => ({ ...f, code: preset.code, type: preset.type as CouponType, value: preset.value, description: preset.desc }))}
+                    className="px-3 py-1.5 bg-white border border-indigo-200 rounded-btn text-xs font-mono hover:bg-indigo-100 transition-colors">
+                    {preset.code}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── ALIEXPRESS ── */}
         {tab === 'aliexpress' && (
           <div className="space-y-5">

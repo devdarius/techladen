@@ -55,6 +55,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     const shippingAddress = JSON.parse(meta.shippingAddress ?? '{}');
     const items = JSON.parse(meta.items ?? '[]');
     const userId = meta.userId ?? '';
+    const couponCode = (meta.couponCode ?? '').trim().toUpperCase();
 
     const subtotal = items.reduce(
       (s: number, i: { price: number; quantity: number }) => s + i.price * i.quantity, 0
@@ -77,6 +78,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
 
     const ref = await db.collection('orders').add(order);
     console.log('Order created:', ref.id);
+
+    // Record coupon usage
+    if (couponCode) {
+      const couponRef = db.collection('coupons').doc(couponCode);
+      await couponRef.update({ usedCount: (await couponRef.get()).data()?.usedCount + 1 || 1 });
+      await db.collection('coupon_usage').add({
+        couponCode, userId, orderId: ref.id, createdAt: new Date().toISOString(),
+      });
+    }
 
     await sendOrderConfirmationEmail({ ...order, id: ref.id });
     console.log('Confirmation email sent to:', shippingAddress.email);

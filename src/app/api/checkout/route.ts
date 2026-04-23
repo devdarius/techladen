@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getSession } from '@/lib/auth';
+import { getFirestore } from '@/lib/firebase-admin';
 import { sendPaymentRequestEmail } from '@/lib/email';
 import type { CartItem } from '@/types/product';
 import type { Order } from '@/types/user';
@@ -15,9 +16,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Bitte anmelden, um fortzufahren.' }, { status: 401 });
     }
 
-    const { items, shippingAddress } = await request.json() as {
+    const { items, shippingAddress, couponCode } = await request.json() as {
       items: CartItem[];
       shippingAddress: Order['shippingAddress'];
+      couponCode?: string;
     };
 
     if (!items?.length) {
@@ -25,7 +27,24 @@ export async function POST(request: Request) {
     }
 
     const subtotal = items.reduce((s, i) => s + i.price.eur * i.quantity, 0);
-    const shippingCost = subtotal >= 29 ? 0 : 499;
+
+    // Apply coupon
+    let couponDiscount = 0;
+    let couponType = '';
+    if (couponCode) {
+      const db = getFirestore();
+      const couponDoc = await db.collection('coupons').doc(couponCode.toUpperCase()).get();
+      if (couponDoc.exists) {
+        const coupon = couponDoc.data()!;
+        if (coupon.active) {
+          if (coupon.type === 'percent') couponDiscount = subtotal * (coupon.value / 100);
+          else if (coupon.type === 'fixed') couponDiscount = Math.min(coupon.value, subtotal);
+          else if (coupon.type === 'free_shipping') couponType = 'free_shipping';
+        }
+      }
+    }
+
+    const shippingCost = (subtotal >= 29 || couponType === 'free_shipping') ? 0 : 499;
 
     const lineItems: Stripe.Checkout.SessionCreateParams['line_items'] = items.map((item) => ({
       price_data: {
@@ -51,6 +70,18 @@ export async function POST(request: Request) {
       });
     }
 
+    // Add discount line item if coupon applied
+    if (couponDiscount > 0) {
+      lineItems!.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Gutschein ${couponCode}` },
+          unit_amount: -Math.round(couponDiscount * 100),
+        },
+        quantity: 1,
+      });
+    }
+
     const orderItems = items.map((i) => ({
       productId: i.id,
       slug: i.slug,
@@ -70,6 +101,7 @@ export async function POST(request: Request) {
         userId: session.uid,
         shippingAddress: JSON.stringify(shippingAddress),
         items: JSON.stringify(orderItems),
+        couponCode: couponCode ?? '',
       },
       success_url: `${BASE_URL}/bestellung/erfolg?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/warenkorb`,
