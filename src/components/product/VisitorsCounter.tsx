@@ -3,23 +3,20 @@
 import { useState, useEffect } from 'react';
 
 export default function VisitorsCounter() {
-  const [count, setCount] = useState(18);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    setCount(12 + Math.floor(Math.random() * 23));
-    const interval = setInterval(() => {
-      setCount((c) => {
-        const delta = Math.floor(Math.random() * 5) - 2;
-        return Math.max(12, Math.min(34, c + delta));
-      });
+    setCount(12 + Math.floor(Math.random() * 22));
+    const iv = setInterval(() => {
+      setCount((c) => Math.max(8, c + (Math.random() > 0.5 ? 1 : -1)));
     }, 30000);
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, []);
 
+  if (!count) return null;
   return (
-    <div className="flex items-center gap-2 text-sm text-text-secondary">
-      <span>👀</span>
-      <span><strong className="text-text-main">{count} Personen</strong> schauen sich das gerade an</span>
-    </div>
+    <p className="text-xs text-[#666]">
+      {count} Personen schauen sich das gerade an
+    </p>
   );
 }

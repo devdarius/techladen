@@ -9,24 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#4F46E5',
-        'primary-dark': '#4338CA',
-        cta: '#059669',
-        'cta-dark': '#047857',
-        urgency: '#D97706',
-        error: '#E63946',
-        surface: '#F8FAFC',
-        border: '#E2E8F0',
-        'text-main': '#1A1A2E',
-        'text-secondary': '#6C757D',
-        success: '#059669',
+        primary: '#111111',
+        surface: '#F7F7F7',
+        border: '#E8E8E8',
+        'text-main': '#111111',
+        'text-secondary': '#666666',
+        success: '#16A34A',
+        urgency: '#DC2626',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-      },
-      boxShadow: {
-        card: '0 2px 12px rgba(0,0,0,0.08)',
-        'card-hover': '0 8px 24px rgba(0,0,0,0.14)',
       },
       borderRadius: {
         card: '12px',
