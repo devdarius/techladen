@@ -71,7 +71,7 @@ export async function POST(request: Request) {
           selectedModel: i.selectedModel ?? '',
         }))),
       },
-      success_url: `${BASE_URL}/zamowienie/sukces?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${BASE_URL}/bestellung/erfolg?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/warenkorb`,
       locale: 'de',
       payment_method_types: ['card'],

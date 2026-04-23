@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Zap, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
-export default function LoginPage() {
+export default function AnmeldenPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
   const [email, setEmail] = useState('');
@@ -28,9 +28,9 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
       setUser(data);
-      router.push('/konto');
+      router.push('/mein-konto');
     } catch {
-      setError('Błąd połączenia z serwerem');
+      setError('Verbindungsfehler. Bitte versuche es erneut.');
     } finally {
       setLoading(false);
     }
@@ -45,45 +45,38 @@ export default function LoginPage() {
             <span className="font-bold text-xl text-text-main">Tech</span>
             <span className="font-light text-xl text-text-secondary">Laden.de</span>
           </Link>
-          <h1 className="text-2xl font-bold text-text-main">Zaloguj się</h1>
-          <p className="text-text-secondary text-sm mt-1">Witaj z powrotem!</p>
+          <h1 className="text-2xl font-bold text-text-main">Anmelden</h1>
+          <p className="text-text-secondary text-sm mt-1">Willkommen zurück!</p>
         </div>
 
         <div className="bg-white rounded-card border border-border p-6 shadow-card">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text-main mb-1.5">Adres e-mail</label>
-              <input
-                type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              <label className="block text-sm font-medium text-text-main mb-1.5">E-Mail-Adresse</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-border rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
-                placeholder="twoj@email.de" required autoFocus
-              />
+                placeholder="deine@email.de" required autoFocus />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-main mb-1.5">Hasło</label>
+              <label className="block text-sm font-medium text-text-main mb-1.5">Passwort</label>
               <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
+                <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                   className="w-full border border-border rounded-btn px-3 py-2.5 pr-10 text-sm focus:outline-none focus:border-primary"
-                  placeholder="••••••••" required
-                />
+                  placeholder="••••••••" required />
                 <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-
             {error && <p className="text-red-500 text-sm">⚠ {error}</p>}
-
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {loading ? 'Logowanie…' : 'Zaloguj się'}
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? 'Anmelden…' : 'Anmelden'}
             </button>
           </form>
-
           <p className="text-center text-sm text-text-secondary mt-4">
-            Nie masz konta?{' '}
-            <Link href="/rejestracja" className="text-primary hover:underline font-medium">Zarejestruj się</Link>
+            Noch kein Konto?{' '}
+            <Link href="/registrieren" className="text-primary hover:underline font-medium">Jetzt registrieren</Link>
           </p>
         </div>
       </div>

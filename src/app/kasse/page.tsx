@@ -8,7 +8,7 @@ import { Loader2, Lock, ArrowLeft } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { useAuthStore } from '@/lib/auth-store';
 
-export default function KasaPage() {
+export default function KassePage() {
   const router = useRouter();
   const { items, total } = useCartStore();
   const { user } = useAuthStore();
@@ -34,9 +34,8 @@ export default function KasaPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) { router.push('/logowanie'); return; }
+    if (!user) { router.push('/anmelden'); return; }
     if (!items.length) return;
-
     setLoading(true);
     setError('');
     try {
@@ -49,7 +48,7 @@ export default function KasaPage() {
       if (!res.ok) { setError(data.error); return; }
       window.location.href = data.url;
     } catch {
-      setError('Błąd podczas tworzenia płatności');
+      setError('Fehler beim Erstellen der Zahlung. Bitte versuche es erneut.');
     } finally {
       setLoading(false);
     }
@@ -58,9 +57,9 @@ export default function KasaPage() {
   if (!items.length) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
-        <p className="text-text-secondary mb-4">Twój koszyk jest pusty.</p>
+        <p className="text-text-secondary mb-4">Dein Warenkorb ist leer.</p>
         <Link href="/" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
-          <ArrowLeft className="w-4 h-4" /> Wróć do sklepu
+          <ArrowLeft className="w-4 h-4" /> Zurück zum Shop
         </Link>
       </div>
     );
@@ -69,37 +68,35 @@ export default function KasaPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Link href="/warenkorb" className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary mb-6 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Wróć do koszyka
+        <ArrowLeft className="w-4 h-4" /> Zurück zum Warenkorb
       </Link>
-
-      <h1 className="text-2xl font-bold text-text-main mb-8">Kasa</h1>
+      <h1 className="text-2xl font-bold text-text-main mb-8">Kasse</h1>
 
       {!user && (
         <div className="bg-blue-50 border border-blue-200 rounded-card p-4 mb-6 text-sm text-blue-800">
-          <Link href="/logowanie" className="font-semibold underline">Zaloguj się</Link> lub{' '}
-          <Link href="/rejestracja" className="font-semibold underline">zarejestruj się</Link>, aby kontynuować.
+          Bitte <Link href="/anmelden" className="font-semibold underline">anmelden</Link> oder{' '}
+          <Link href="/registrieren" className="font-semibold underline">registrieren</Link>, um fortzufahren.
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Form */}
         <form onSubmit={handleSubmit} className="lg:col-span-3 space-y-5">
           <div className="bg-white rounded-card border border-border p-6 shadow-card">
-            <h2 className="font-semibold text-text-main mb-4">Adres dostawy</h2>
+            <h2 className="font-semibold text-text-main mb-4">Lieferadresse</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-text-main mb-1">Imię *</label>
+                <label className="block text-xs font-medium text-text-main mb-1">Vorname *</label>
                 <input type="text" value={form.firstName} onChange={set('firstName')} required
                   className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-text-main mb-1">Nazwisko *</label>
+                <label className="block text-xs font-medium text-text-main mb-1">Nachname *</label>
                 <input type="text" value={form.lastName} onChange={set('lastName')} required
                   className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
               </div>
             </div>
             <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">E-mail *</label>
+              <label className="block text-xs font-medium text-text-main mb-1">E-Mail *</label>
               <input type="email" value={form.email} onChange={set('email')} required
                 className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
@@ -109,53 +106,48 @@ export default function KasaPage() {
                 className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
             <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">Ulica i numer *</label>
+              <label className="block text-xs font-medium text-text-main mb-1">Straße und Hausnummer *</label>
               <input type="text" value={form.street} onChange={set('street')} required
                 className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
             </div>
             <div className="grid grid-cols-3 gap-3 mt-3">
               <div>
-                <label className="block text-xs font-medium text-text-main mb-1">Kod pocztowy *</label>
+                <label className="block text-xs font-medium text-text-main mb-1">PLZ *</label>
                 <input type="text" value={form.zip} onChange={set('zip')} required
                   className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-text-main mb-1">Miasto *</label>
+                <label className="block text-xs font-medium text-text-main mb-1">Stadt *</label>
                 <input type="text" value={form.city} onChange={set('city')} required
                   className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary" />
               </div>
             </div>
             <div className="mt-3">
-              <label className="block text-xs font-medium text-text-main mb-1">Kraj</label>
+              <label className="block text-xs font-medium text-text-main mb-1">Land</label>
               <select value={form.country} onChange={set('country')}
                 className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
-                <option value="DE">Niemcy</option>
-                <option value="AT">Austria</option>
-                <option value="CH">Szwajcaria</option>
-                <option value="PL">Polska</option>
+                <option value="DE">Deutschland</option>
+                <option value="AT">Österreich</option>
+                <option value="CH">Schweiz</option>
               </select>
             </div>
           </div>
 
           {error && <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded-btn px-3 py-2">⚠ {error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading || !user}
-            className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button type="submit" disabled={loading || !user}
+            className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
-            {loading ? 'Przekierowuję do płatności…' : `Zapłać ${grandTotal.toFixed(2).replace('.', ',')} €`}
+            {loading ? 'Weiterleitung zur Zahlung…' : `Jetzt bezahlen ${grandTotal.toFixed(2).replace('.', ',')} €`}
           </button>
           <p className="text-xs text-text-secondary text-center flex items-center justify-center gap-1">
-            <Lock className="w-3 h-3" /> Bezpieczna płatność przez Stripe
+            <Lock className="w-3 h-3" /> Sichere Zahlung über Stripe — SSL verschlüsselt
           </p>
         </form>
 
-        {/* Order summary */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-card border border-border p-5 shadow-card sticky top-24">
-            <h2 className="font-semibold text-text-main mb-4">Podsumowanie ({items.reduce((s, i) => s + i.quantity, 0)} szt.)</h2>
+            <h2 className="font-semibold text-text-main mb-4">Bestellübersicht ({items.reduce((s, i) => s + i.quantity, 0)} Artikel)</h2>
             <div className="space-y-3 mb-4">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
@@ -174,16 +166,16 @@ export default function KasaPage() {
             </div>
             <div className="border-t border-border pt-3 space-y-1.5 text-sm">
               <div className="flex justify-between text-text-secondary">
-                <span>Suma częściowa</span><span>{total().toFixed(2).replace('.', ',')} €</span>
+                <span>Zwischensumme</span><span>{total().toFixed(2).replace('.', ',')} €</span>
               </div>
               <div className="flex justify-between text-text-secondary">
-                <span>Wysyłka</span>
+                <span>Versand</span>
                 <span className={shipping === 0 ? 'text-success font-medium' : ''}>
-                  {shipping === 0 ? 'Bezpłatna' : `${shipping.toFixed(2).replace('.', ',')} €`}
+                  {shipping === 0 ? 'Kostenlos' : `${shipping.toFixed(2).replace('.', ',')} €`}
                 </span>
               </div>
               <div className="flex justify-between font-bold text-text-main border-t border-border pt-2 mt-2">
-                <span>Razem</span><span className="text-primary">{grandTotal.toFixed(2).replace('.', ',')} €</span>
+                <span>Gesamt</span><span className="text-primary">{grandTotal.toFixed(2).replace('.', ',')} €</span>
               </div>
               <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
             </div>

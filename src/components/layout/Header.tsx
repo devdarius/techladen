@@ -77,7 +77,7 @@ export default function Header() {
           </button>
 
           <Link
-            href={user ? '/konto' : '/logowanie'}
+            href={user ? '/mein-konto' : '/anmelden'}
             className="p-2 rounded-btn hover:bg-surface transition-colors text-text-secondary hover:text-text-main"
             aria-label="Konto"
           >
