@@ -116,7 +116,7 @@ export default function CartDrawer() {
             <p className="text-xs text-text-secondary">inkl. 19% MwSt.</p>
 
             <Link
-              href="/kasa"
+              href="/kasse"
               onClick={closeCart}
               className="btn-primary w-full py-3.5 flex items-center justify-center gap-2 text-sm"
             >

@@ -86,7 +86,7 @@ export default function WarenkorbPage() {
           )}
 
           <Link
-            href="/kasa"
+            href="/kasse"
             className="btn-primary w-full mt-5 py-3 flex items-center justify-center gap-2 text-sm"
           >
             Zur Kasse <ArrowRight className="w-4 h-4" />
