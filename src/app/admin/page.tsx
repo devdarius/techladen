@@ -5,19 +5,17 @@ import Image from 'next/image';
 import {
   Lock, Package, Trash2, RefreshCw, Plus, BarChart2,
   ShoppingBag, DollarSign, Loader2, LogOut, Eye, EyeOff,
-  Users, ClipboardList, ChevronDown, Truck,
+  Users, ClipboardList, ChevronDown, Truck, Search, Link2,
 } from 'lucide-react';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/user';
 
-// ─── Types ────────────────────────────────────────────────────
 interface AdminUser {
-  uid: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  createdAt: string;
-  phone?: string;
+  uid: string; email: string; firstName: string; lastName: string; createdAt: string; phone?: string;
+}
+
+interface SearchResult {
+  product_id: number; product_title: string; sale_price: string; main_image: string;
 }
 
 const ORDER_STATUSES = [
@@ -38,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled:  'bg-red-100 text-red-800',
 };
 
-type Tab = 'dashboard' | 'produkty' | 'uzytkownicy' | 'zamowienia';
+type Tab = 'dashboard' | 'produkty' | 'uzytkownicy' | 'zamowienia' | 'aliexpress';
 
 // ─── Main component ───────────────────────────────────────────
 export default function AdminPage() {
@@ -58,6 +56,12 @@ export default function AdminPage() {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
   const [importError, setImportError] = useState('');
+
+  // AliExpress search
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [fulfilling, setFulfilling] = useState<string | null>(null);
 
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -150,6 +154,38 @@ export default function AdminPage() {
     alert('Email o wysyłce został wysłany!');
   };
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/aliexpress/search?q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      setSearchResults(Array.isArray(data) ? data : []);
+    } catch { /* ignore */ }
+    finally { setSearching(false); }
+  };
+
+  const handleFulfill = async (orderId: string) => {
+    if (!confirm('Automatycznie złożyć zamówienie na AliExpress?')) return;
+    setFulfilling(orderId);
+    try {
+      const res = await fetch('/api/aliexpress/fulfill', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Zamówienie złożone! AliExpress IDs: ${data.aliOrderIds?.join(', ')}`);
+        loadAll();
+      } else {
+        alert(`Błąd: ${data.error}`);
+      }
+    } catch { /* ignore */ }
+    finally { setFulfilling(null); }
+  };
+
   useEffect(() => { if (authed) loadAll(); }, [authed, loadAll]);
 
   // ── Login ──────────────────────────────────────────────────
@@ -201,6 +237,7 @@ export default function AdminPage() {
     { id: 'produkty',     label: 'Produkty',     icon: Package },
     { id: 'uzytkownicy',  label: 'Użytkownicy',  icon: Users },
     { id: 'zamowienia',   label: 'Zamówienia',   icon: ClipboardList },
+    { id: 'aliexpress',   label: 'AliExpress',   icon: Link2 },
   ];
 
   return (
@@ -435,15 +472,25 @@ export default function AdminPage() {
                             <ChevronDown className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
                           </div>
                           {order.status === 'paid' || order.status === 'processing' ? (
-                            <button
-                              onClick={() => sendShipping(order.id)}
-                              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors font-medium"
-                              title="Wyślij email o wysyłce"
-                            >
-                              <Truck className="w-3.5 h-3.5" /> Wyślij
-                            </button>
-                          ) : null}
-                          <p className="text-sm font-bold text-primary">{order.total?.toFixed(2).replace('.', ',')} €</p>
+                            <>
+                              <button
+                                onClick={() => handleFulfill(order.id)}
+                                disabled={fulfilling === order.id}
+                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-btn bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors font-medium disabled:opacity-50"
+                                title="Złóż zamówienie na AliExpress"
+                              >
+                                {fulfilling === order.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                                Fulfil
+                              </button>
+                              <button
+                                onClick={() => sendShipping(order.id)}
+                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors font-medium"
+                                title="Wyślij email o wysyłce"
+                              >
+                                <Truck className="w-3.5 h-3.5" /> Wyślij
+                              </button>
+                            </>
+                          ) : null}                          <p className="text-sm font-bold text-primary">{order.total?.toFixed(2).replace('.', ',')} €</p>
                         </div>
                       </div>
                       {/* Items */}
@@ -459,6 +506,72 @@ export default function AdminPage() {
                             <span className="text-xs font-medium text-text-main">×{item.quantity}</span>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* ── ALIEXPRESS ── */}
+        {tab === 'aliexpress' && (
+          <div className="space-y-5">
+            <h2 className="text-xl font-bold text-text-main">AliExpress Integracja</h2>
+
+            {/* OAuth connect */}
+            <div className="bg-white rounded-card border border-border p-5 shadow-card">
+              <h3 className="font-semibold text-text-main mb-1 flex items-center gap-2">
+                <Link2 className="w-4 h-4 text-primary" /> Połączenie OAuth
+              </h3>
+              <p className="text-xs text-text-secondary mb-4">
+                Aby automatycznie składać zamówienia na AliExpress, musisz autoryzować aplikację.
+              </p>
+              <a
+                href={`https://openservice.aliexpress.com/authorize/app_redirect?app_id=${process.env.NEXT_PUBLIC_ALIEXPRESS_APP_KEY ?? '532686'}&state=admin&redirect_uri=https://techladen.de/api/aliexpress/callback`}
+                className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
+                target="_blank" rel="noopener noreferrer"
+              >
+                <Link2 className="w-4 h-4" /> Połącz z AliExpress
+              </a>
+            </div>
+
+            {/* Product search */}
+            <div className="bg-white rounded-card border border-border p-5 shadow-card">
+              <h3 className="font-semibold text-text-main mb-3 flex items-center gap-2">
+                <Search className="w-4 h-4 text-primary" /> Wyszukaj produkty
+              </h3>
+              <form onSubmit={handleSearch} className="flex gap-3 mb-4">
+                <input
+                  type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="np. iPhone case, USB-C cable..."
+                  className="flex-1 border border-border rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
+                />
+                <button type="submit" disabled={searching}
+                  className="btn-primary px-5 py-2.5 text-sm flex items-center gap-2 disabled:opacity-50">
+                  {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  Szukaj
+                </button>
+              </form>
+
+              {searchResults.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {searchResults.map((r) => (
+                    <div key={r.product_id} className="border border-border rounded-card overflow-hidden hover:border-primary transition-colors">
+                      {r.main_image && (
+                        <div className="relative aspect-square bg-surface">
+                          <Image src={r.main_image} alt={r.product_title} fill className="object-contain p-2" sizes="150px" />
+                        </div>
+                      )}
+                      <div className="p-2">
+                        <p className="text-xs text-text-main line-clamp-2 mb-1">{r.product_title}</p>
+                        <p className="text-xs font-bold text-primary mb-2">{r.sale_price} €</p>
+                        <button
+                          onClick={() => { setProductId(String(r.product_id)); setTab('produkty'); }}
+                          className="w-full text-xs py-1.5 rounded-btn bg-red-50 text-primary hover:bg-red-100 transition-colors font-medium"
+                        >
+                          + Importuj
+                        </button>
                       </div>
                     </div>
                   ))}
