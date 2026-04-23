@@ -1,0 +1,31 @@
+import { NextResponse } from 'next/server';
+import { getFirestore } from '@/lib/firebase-admin';
+import { sendShippingEmail } from '@/lib/email';
+import type { Order } from '@/types/user';
+
+export async function POST(request: Request) {
+  const pw = request.headers.get('x-admin-password');
+  if (pw !== process.env.ADMIN_PASSWORD) {
+    return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  }
+
+  const { orderId, trackingNumber } = await request.json();
+  if (!orderId) return NextResponse.json({ error: 'Brak orderId' }, { status: 400 });
+
+  const db = getFirestore();
+  const doc = await db.collection('orders').doc(orderId).get();
+  if (!doc.exists) return NextResponse.json({ error: 'Zamówienie nie istnieje' }, { status: 404 });
+
+  const order = { id: doc.id, ...doc.data() } as Order & { id: string };
+
+  // Update status to shipped
+  await db.collection('orders').doc(orderId).update({
+    status: 'shipped',
+    trackingNumber: trackingNumber ?? null,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await sendShippingEmail(order, trackingNumber);
+
+  return NextResponse.json({ ok: true });
+}

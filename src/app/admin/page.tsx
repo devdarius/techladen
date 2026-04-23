@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Lock, Package, Trash2, RefreshCw, Plus, BarChart2,
   ShoppingBag, DollarSign, Loader2, LogOut, Eye, EyeOff,
-  Users, ClipboardList, ChevronDown,
+  Users, ClipboardList, ChevronDown, Truck,
 } from 'lucide-react';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/user';
@@ -137,6 +137,17 @@ export default function AdminPage() {
       body: JSON.stringify({ orderId, status }),
     });
     setOrders((o) => o.map((x) => x.id === orderId ? { ...x, status: status as Order['status'] } : x));
+  };
+
+  const sendShipping = async (orderId: string) => {
+    const tracking = prompt('Numer śledzenia przesyłki (opcjonalnie):') ?? undefined;
+    await fetch('/api/admin/send-shipping', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ orderId, trackingNumber: tracking || undefined }),
+    });
+    setOrders((o) => o.map((x) => x.id === orderId ? { ...x, status: 'shipped' as Order['status'] } : x));
+    alert('Email o wysyłce został wysłany!');
   };
 
   useEffect(() => { if (authed) loadAll(); }, [authed, loadAll]);
@@ -410,8 +421,7 @@ export default function AdminPage() {
                             {new Date(order.createdAt).toLocaleString('pl-PL')}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {/* Status dropdown */}
+                        <div className="flex items-center gap-3 flex-shrink-0 flex-wrap">
                           <div className="relative">
                             <select
                               value={order.status}
@@ -424,6 +434,15 @@ export default function AdminPage() {
                             </select>
                             <ChevronDown className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
                           </div>
+                          {order.status === 'paid' || order.status === 'processing' ? (
+                            <button
+                              onClick={() => sendShipping(order.id)}
+                              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-btn bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors font-medium"
+                              title="Wyślij email o wysyłce"
+                            >
+                              <Truck className="w-3.5 h-3.5" /> Wyślij
+                            </button>
+                          ) : null}
                           <p className="text-sm font-bold text-primary">{order.total?.toFixed(2).replace('.', ',')} €</p>
                         </div>
                       </div>
