@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Truck, Zap, Lock, Star } from 'lucide-react';
 
 const MESSAGES = [
-  '🚚 Kostenloser Versand ab 29€',
-  '⚡ Blitzversand — Heute bestellt, schnell geliefert',
-  '🔒 Sicher bezahlen mit PayPal & Klarna',
-  '⭐ Über 15.000 zufriedene Kunden',
+  { icon: Truck, text: 'Kostenloser Versand ab 29€' },
+  { icon: Zap,   text: 'Heute bestellt — schnell geliefert' },
+  { icon: Lock,  text: 'Sicher bezahlen mit PayPal & Klarna' },
+  { icon: Star,  text: 'Über 15.000 zufriedene Kunden' },
 ];
 
 export default function AnnouncementBar() {
@@ -24,16 +25,16 @@ export default function AnnouncementBar() {
     return () => clearInterval(interval);
   }, []);
 
+  const { icon: Icon, text } = MESSAGES[index];
+
   return (
-    <div className="bg-primary text-white text-sm py-2 px-4 text-center font-medium overflow-hidden">
+    <div className="bg-slate-900 text-white text-sm py-2 px-4 text-center font-medium">
       <span
-        style={{
-          display: 'inline-block',
-          transition: 'opacity 0.3s ease',
-          opacity: visible ? 1 : 0,
-        }}
+        className="inline-flex items-center gap-2"
+        style={{ transition: 'opacity 0.3s ease', opacity: visible ? 1 : 0 }}
       >
-        {MESSAGES[index]}
+        <Icon className="w-3.5 h-3.5 opacity-80" />
+        {text}
       </span>
     </div>
   );

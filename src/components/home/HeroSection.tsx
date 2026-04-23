@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Zap } from 'lucide-react';
 import CountdownTimer from '@/components/ui/CountdownTimer';
 
 const HERO_IMAGES = [
@@ -18,8 +18,9 @@ export default function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         {/* Left */}
         <div>
-          <span className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-error px-3 py-1.5 rounded-full mb-4 animate-pulse">
-            🔥 FLASH SALE — Bis zu 40% Rabatt
+          <span className="inline-flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 px-3 py-1.5 rounded-full mb-4 uppercase tracking-wide">
+            <Zap className="w-3.5 h-3.5" />
+            Flash Sale — Bis zu 40% Rabatt
           </span>
           <h1 className="text-4xl md:text-5xl font-extrabold text-text-main leading-tight mb-4">
             Premium<br />
