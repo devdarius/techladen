@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Zap, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
 export default function AnmeldenPage() {
@@ -14,11 +14,14 @@ export default function AnmeldenPage() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setUnverified(false);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -26,7 +29,15 @@ export default function AnmeldenPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
+      if (!res.ok) {
+        if (data.unverified) {
+          setUnverified(true);
+          setUnverifiedEmail(data.email ?? email);
+        } else {
+          setError(data.error);
+        }
+        return;
+      }
       setUser(data);
       router.push('/mein-konto');
     } catch {
@@ -50,6 +61,27 @@ export default function AnmeldenPage() {
         </div>
 
         <div className="bg-white rounded-card border border-border p-6 shadow-card">
+          {/* Unverified email warning */}
+          {unverified && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-btn p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">E-Mail nicht bestätigt</p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Bitte bestätige zuerst deine E-Mail-Adresse <strong>{unverifiedEmail}</strong>.
+                  </p>
+                  <Link
+                    href={`/email-bestaetigung`}
+                    className="inline-block mt-2 text-xs font-semibold text-yellow-800 underline hover:no-underline"
+                  >
+                    Neuen Bestätigungslink anfordern →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-text-main mb-1.5">E-Mail-Adresse</label>
@@ -63,17 +95,20 @@ export default function AnmeldenPage() {
                 <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                   className="w-full border border-border rounded-btn px-3 py-2.5 pr-10 text-sm focus:outline-none focus:border-primary"
                   placeholder="••••••••" required />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
+                <button type="button" onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             {error && <p className="text-red-500 text-sm">⚠ {error}</p>}
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
+            <button type="submit" disabled={loading}
+              className="btn-primary w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading ? 'Anmelden…' : 'Anmelden'}
             </button>
           </form>
+
           <p className="text-center text-sm text-text-secondary mt-4">
             Noch kein Konto?{' '}
             <Link href="/registrieren" className="text-primary hover:underline font-medium">Jetzt registrieren</Link>

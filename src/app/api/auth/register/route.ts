@@ -1,44 +1,48 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { getFirestore } from '@/lib/firebase-admin';
-import { setSession } from '@/lib/auth';
-import type { User } from '@/types/user';
+import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
     const { email, password, firstName, lastName } = await request.json();
 
     if (!email || !password || !firstName || !lastName) {
-      return NextResponse.json({ error: 'Wszystkie pola są wymagane' }, { status: 400 });
+      return NextResponse.json({ error: 'Alle Felder sind erforderlich.' }, { status: 400 });
     }
     if (password.length < 6) {
-      return NextResponse.json({ error: 'Hasło musi mieć co najmniej 6 znaków' }, { status: 400 });
+      return NextResponse.json({ error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' }, { status: 400 });
     }
 
     const db = getFirestore();
     const existing = await db.collection('users').where('email', '==', email.toLowerCase()).get();
     if (!existing.empty) {
-      return NextResponse.json({ error: 'Konto z tym adresem e-mail już istnieje' }, { status: 409 });
+      return NextResponse.json({ error: 'Ein Konto mit dieser E-Mail-Adresse existiert bereits.' }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
     const uid = crypto.randomUUID();
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const now = new Date().toISOString();
 
-    const user: Omit<User, 'uid'> & { passwordHash: string } = {
+    await db.collection('users').doc(uid).set({
       email: email.toLowerCase(),
       firstName,
       lastName,
       passwordHash,
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpires: Date.now() + 24 * 60 * 60 * 1000, // 24h
       createdAt: now,
-    };
+    });
 
-    await db.collection('users').doc(uid).set(user);
-    await setSession({ uid, email: email.toLowerCase(), firstName, lastName });
+    // Send verification email
+    await sendVerificationEmail({ email: email.toLowerCase(), firstName, verificationToken });
 
-    return NextResponse.json({ uid, email: email.toLowerCase(), firstName, lastName });
+    return NextResponse.json({ ok: true, message: 'Bitte überprüfe deine E-Mails und bestätige dein Konto.' });
   } catch (error) {
     console.error('Register error:', error);
-    return NextResponse.json({ error: 'Błąd serwera' }, { status: 500 });
+    return NextResponse.json({ error: 'Serverfehler. Bitte versuche es erneut.' }, { status: 500 });
   }
 }

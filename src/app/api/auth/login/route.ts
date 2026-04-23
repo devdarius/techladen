@@ -7,20 +7,30 @@ export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
     if (!email || !password) {
-      return NextResponse.json({ error: 'Podaj e-mail i hasło' }, { status: 400 });
+      return NextResponse.json({ error: 'Bitte E-Mail und Passwort eingeben.' }, { status: 400 });
     }
 
     const db = getFirestore();
     const snap = await db.collection('users').where('email', '==', email.toLowerCase()).get();
     if (snap.empty) {
-      return NextResponse.json({ error: 'Nieprawidłowy e-mail lub hasło' }, { status: 401 });
+      return NextResponse.json({ error: 'Ungültige E-Mail-Adresse oder Passwort.' }, { status: 401 });
     }
 
     const doc = snap.docs[0];
     const data = doc.data();
+
     const valid = await bcrypt.compare(password, data.passwordHash);
     if (!valid) {
-      return NextResponse.json({ error: 'Nieprawidłowy e-mail lub hasło' }, { status: 401 });
+      return NextResponse.json({ error: 'Ungültige E-Mail-Adresse oder Passwort.' }, { status: 401 });
+    }
+
+    // Check email verification
+    if (!data.emailVerified) {
+      return NextResponse.json({
+        error: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
+        unverified: true,
+        email: data.email,
+      }, { status: 403 });
     }
 
     const user = { uid: doc.id, email: data.email, firstName: data.firstName, lastName: data.lastName };
@@ -28,6 +38,6 @@ export async function POST(request: Request) {
     return NextResponse.json(user);
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Błąd serwera' }, { status: 500 });
+    return NextResponse.json({ error: 'Serverfehler.' }, { status: 500 });
   }
 }
