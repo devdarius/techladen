@@ -286,9 +286,9 @@ export default function KassePage() {
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
                 className="w-full border border-border rounded-btn px-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-white"
               >
-                <option value="DE">🇩🇪 Deutschland</option>
-                <option value="AT">🇦🇹 Österreich</option>
-                <option value="CH">🇨🇭 Schweiz</option>
+                <option value="DE">Deutschland</option>
+                <option value="AT">Österreich</option>
+                <option value="CH">Schweiz</option>
               </select>
             </div>
           </div>
