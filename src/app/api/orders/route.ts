@@ -11,10 +11,11 @@ export async function GET() {
     const db = getFirestore();
     const snap = await db.collection('orders')
       .where('userId', '==', session.uid)
-      .orderBy('createdAt', 'desc')
       .get();
 
-    const orders: Order[] = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Order));
+    const orders: Order[] = snap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() } as Order))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return NextResponse.json(orders);
   } catch (error) {
     console.error('GET /api/orders error:', error);

@@ -8,8 +8,12 @@ function checkAdmin(request: Request) {
 export async function GET(request: Request) {
   if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const db = getFirestore();
-  const snap = await db.collection('orders').orderBy('createdAt', 'desc').get();
-  const orders = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const snap = await db.collection('orders').get();
+  const orders = snap.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
+      new Date(b.createdAt as string).getTime() - new Date(a.createdAt as string).getTime()
+    );
   return NextResponse.json(orders);
 }
 
