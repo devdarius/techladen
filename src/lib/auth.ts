@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'fallback_secret';
+const JWT_SECRET = (process.env.JWT_SECRET ?? 'fallback_secret').trim();
 const COOKIE_NAME = 'tl_session';
 
 export interface SessionUser {
@@ -35,7 +35,7 @@ export async function setSession(user: SessionUser) {
   cookieStore.set(COOKIE_NAME, signToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
   });
