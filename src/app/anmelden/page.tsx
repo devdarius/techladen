@@ -108,7 +108,7 @@ export default function AnmeldenPage() {
             {/* Turnstile */}
             <div className="flex justify-center">
               <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                siteKey="0x4AAAAAADB9PTqFl-310e6L"
                 onSuccess={(token) => { turnstileToken.current = token; }}
                 onExpire={() => { turnstileToken.current = ''; }}
                 options={{ theme: 'light', language: 'de' }}
