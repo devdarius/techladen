@@ -91,7 +91,10 @@ async function seed() {
       category: p.category,
       images: p.images,
       price: p.price,
-      variants: p.variants,
+      variants: {
+        colors: Array.isArray(p.variants.colors) ? p.variants.colors : [],
+        models: Array.isArray(p.variants.models) ? p.variants.models : [],
+      },
       badge: p.badge ?? null,
       aliexpressProductId: '',
       inStock: true,
