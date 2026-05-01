@@ -123,6 +123,7 @@ export async function searchProducts(
     const data = await callAPI('aliexpress.ds.text.search', {
       search_key: keyword,
       target_currency: 'EUR',
+      currency: 'EUR',
       target_language: 'de_DE',
       ship_to_country: 'DE',
       countryCode: 'DE',
