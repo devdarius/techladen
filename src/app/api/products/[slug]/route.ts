@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { getFirestore } from '@/lib/firebase-admin';
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  const adminPassword = request.headers.get('x-admin-password');
-  if (adminPassword !== process.env.ADMIN_PASSWORD) {
+  const session = await getSession();
+  if (session?.role !== 'admin') {
     return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
   }
 
@@ -27,8 +28,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  const adminPassword = request.headers.get('x-admin-password');
-  if (adminPassword !== process.env.ADMIN_PASSWORD) {
+  const session = await getSession();
+  if (session?.role !== 'admin') {
     return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
   }
 

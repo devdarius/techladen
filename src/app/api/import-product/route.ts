@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { getFirestore } from '@/lib/firebase-admin';
 import { callAPI } from '@/lib/aliexpress';
 import type { Product } from '@/types/product';
@@ -58,6 +59,11 @@ function mapCategory(categoryId: number): string {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (session?.role !== 'admin') {
+      return NextResponse.json({ error: 'Brak uprawnień admina' }, { status: 403 });
+    }
+
     const { productId } = await request.json() as { productId: string };
     if (!productId) return NextResponse.json({ error: 'productId ist erforderlich' }, { status: 400 });
 

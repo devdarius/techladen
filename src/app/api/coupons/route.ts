@@ -2,13 +2,16 @@ import { NextResponse } from 'next/server';
 import { getFirestore } from '@/lib/firebase-admin';
 import type { Coupon } from '@/types/coupon';
 
-function checkAdmin(req: Request) {
-  return req.headers.get('x-admin-password') === process.env.ADMIN_PASSWORD;
+import { getSession } from '@/lib/auth';
+
+async function checkAdmin() {
+  const session = await getSession();
+  return session?.role === 'admin';
 }
 
 // GET all coupons (admin)
 export async function GET(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const db = getFirestore();
   const snap = await db.collection('coupons').get();
   const coupons = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -17,7 +20,7 @@ export async function GET(request: Request) {
 
 // POST create coupon (admin)
 export async function POST(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const body = await request.json() as Partial<Coupon>;
 
   const code = (body.code ?? '').trim().toUpperCase();
@@ -46,7 +49,7 @@ export async function POST(request: Request) {
 
 // PATCH update coupon (admin)
 export async function PATCH(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const { code, ...updates } = await request.json();
   if (!code) return NextResponse.json({ error: 'Brak kodu' }, { status: 400 });
   const db = getFirestore();
@@ -56,7 +59,7 @@ export async function PATCH(request: Request) {
 
 // DELETE coupon (admin)
 export async function DELETE(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const { code } = await request.json();
   const db = getFirestore();
   await db.collection('coupons').doc(code.toUpperCase()).delete();

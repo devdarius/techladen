@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getFirestore } from '@/lib/firebase-admin';
 
-function checkAdmin(request: Request) {
-  return request.headers.get('x-admin-password') === process.env.ADMIN_PASSWORD;
+import { getSession } from '@/lib/auth';
+
+async function checkAdmin() {
+  const session = await getSession();
+  return session?.role === 'admin';
 }
 
 export async function GET(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const db = getFirestore();
   const snap = await db.collection('orders').get();
   const orders = snap.docs
@@ -18,7 +21,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const { orderId, status } = await request.json();
   if (!orderId || !status) return NextResponse.json({ error: 'Brak danych' }, { status: 400 });
   const db = getFirestore();

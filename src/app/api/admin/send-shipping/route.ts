@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { getFirestore } from '@/lib/firebase-admin';
 import { sendShippingEmail } from '@/lib/email';
 import type { Order } from '@/types/user';
 
 export async function POST(request: Request) {
-  const pw = request.headers.get('x-admin-password');
-  if (pw !== process.env.ADMIN_PASSWORD) {
+  const session = await getSession();
+  if (session?.role !== 'admin') {
     return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   }
 

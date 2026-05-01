@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   address?: Address;
   createdAt: string;
+  role?: 'admin' | 'user';
 }
 
 export interface Address {

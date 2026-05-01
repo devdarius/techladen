@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getFirestore } from '@/lib/firebase-admin';
 
-function checkAdmin(request: Request) {
-  const pw = request.headers.get('x-admin-password');
-  return pw === process.env.ADMIN_PASSWORD;
+import { getSession } from '@/lib/auth';
+
+async function checkAdmin() {
+  const session = await getSession();
+  return session?.role === 'admin';
 }
 
 export async function GET(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const db = getFirestore();
   const snap = await db.collection('users').orderBy('createdAt', 'desc').get();
   const users = snap.docs.map((doc) => {
@@ -25,7 +27,7 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!checkAdmin(request)) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
+  if (!(await checkAdmin())) return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
   const { uid } = await request.json();
   if (!uid) return NextResponse.json({ error: 'Brak uid' }, { status: 400 });
   const db = getFirestore();

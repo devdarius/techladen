@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Lock, Package, Trash2, RefreshCw, Plus, BarChart2,
-  ShoppingBag, DollarSign, Loader2, LogOut, Eye, EyeOff,
+  ShoppingBag, DollarSign, Loader2, LogOut,
   Users, ClipboardList, ChevronDown, Truck, Search, Link2, Tag, Edit3,
 } from 'lucide-react';
 import type { Product } from '@/types/product';
@@ -42,11 +42,8 @@ type Tab = 'dashboard' | 'produkty' | 'uzytkownicy' | 'zamowienia' | 'aliexpress
 
 // ─── Main component ───────────────────────────────────────────
 export default function AdminPage() {
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
   const [authed, setAuthed] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
   const [tab, setTab] = useState<Tab>('dashboard');
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -80,8 +77,7 @@ export default function AdminPage() {
 
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
-    'x-admin-password': password,
-  }), [password]);
+  }), []);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -101,25 +97,19 @@ export default function AdminPage() {
     finally { setLoading(false); }
   }, [headers]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthLoading(true);
-    setAuthError('');
-    try {
-      const res = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      if (res.ok) { setAuthed(true); }
-      else { const d = await res.json(); setAuthError(d.error ?? 'Nieprawidłowe hasło'); }
-    } catch { setAuthError('Błąd połączenia'); }
-    finally { setAuthLoading(false); }
-  };
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(user => {
+        if (user?.role === 'admin') setAuthed(true);
+        setAuthChecking(false);
+      })
+      .catch(() => setAuthChecking(false));
+  }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/admin/verify', { method: 'DELETE' });
-    setAuthed(false); setPassword('');
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/mein-konto';
   };
 
   const handleImport = async (e: React.FormEvent) => {
@@ -255,41 +245,28 @@ export default function AdminPage() {
   useEffect(() => { if (authed) loadAll(); }, [authed, loadAll]);
 
   // ── Login ──────────────────────────────────────────────────
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   if (!authed) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center px-4">
-        <div className="w-full max-w-sm bg-white rounded-card border border-border p-8 shadow-card">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-red-50 rounded-btn flex items-center justify-center">
-              <Lock className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="font-bold text-text-main">Panel administracyjny</h1>
-              <p className="text-xs text-text-secondary">TechLaden.de</p>
-            </div>
+        <div className="w-full max-w-sm bg-white rounded-card border border-border p-8 shadow-card text-center">
+          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-primary" />
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-text-main mb-1.5">Hasło</label>
-              <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'} value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-border rounded-btn px-3 py-2.5 pr-10 text-sm focus:outline-none focus:border-primary"
-                  placeholder="Hasło administratora" autoFocus
-                />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {authError && <p className="text-red-500 text-xs mt-1">⚠ {authError}</p>}
-            </div>
-            <button type="submit" disabled={authLoading || !password}
-              className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-              {authLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-              {authLoading ? 'Logowanie…' : 'Zaloguj się'}
-            </button>
-          </form>
+          <h1 className="font-bold text-lg text-text-main mb-2">Brak dostępu</h1>
+          <p className="text-sm text-text-secondary mb-6">
+            Musisz być zalogowany jako administrator, aby uzyskać dostęp do tej sekcji.
+          </p>
+          <a href="/mein-konto" className="btn-primary w-full py-2.5 text-sm flex items-center justify-center">
+            Przejdź do logowania
+          </a>
         </div>
       </div>
     );

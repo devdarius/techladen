@@ -9,6 +9,7 @@ export interface SessionUser {
   email: string;
   firstName: string;
   lastName: string;
+  role?: 'admin' | 'user';
 }
 
 export function signToken(user: SessionUser): string {

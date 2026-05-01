@@ -40,7 +40,13 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
-    const user = { uid: doc.id, email: data.email, firstName: data.firstName, lastName: data.lastName };
+    const user = { 
+      uid: doc.id, 
+      email: data.email, 
+      firstName: data.firstName, 
+      lastName: data.lastName,
+      role: data.role || 'user'
+    };
     await setSession(user);
     return NextResponse.json(user);
   } catch (error) {
