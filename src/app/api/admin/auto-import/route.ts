@@ -54,9 +54,7 @@ function extractVariants(skuList: Array<{ sku_attr?: string; sku_id?: string; pr
 export async function POST() {
   try {
     const session = await getSession();
-    if (session?.role !== 'admin') {
-      return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
-    }
+    if (session?.role !== 'admin') return NextResponse.json({ error: 'Brak dostępu' }, { status: 401 });
 
     const db = getFirestore();
     const tokenDoc = await db.collection('settings').doc('aliexpress_token').get();
@@ -74,12 +72,36 @@ export async function POST() {
     await batch.commit();
 
     const QUERIES = [
-      { q: 'MagSafe wireless charger', cat: 'MagSafe', aliCat: '5090301' },
-      { q: 'iPhone 15 pro max case', cat: 'Hüllen', aliCat: '5090301' },
-      { q: 'GaN fast charger 65w', cat: 'Ladegeräte', aliCat: '5090301' },
-      { q: 'USB C fast charge cable 100w', cat: 'Kabel', aliCat: '5090301' },
-      { q: 'iPhone screen protector tempered glass', cat: 'Schutzglas', aliCat: '5090301' },
-      { q: 'Powerbank 10000mAh PD', cat: 'Powerbanks', aliCat: '44' }
+      {
+        q: 'MagSafe wireless charger iPhone',
+        cat: 'MagSafe',
+        keywords: ['magsafe', 'magnetic', 'wireless charg', 'qi charger', 'mag safe']
+      },
+      {
+        q: 'iPhone 15 14 13 case cover',
+        cat: 'Hüllen',
+        keywords: ['iphone', 'case', 'cover', 'hülle', 'schutzhülle', 'coque']
+      },
+      {
+        q: 'GaN USB C fast charger 65w 100w',
+        cat: 'Ladegeräte',
+        keywords: ['charger', 'gan', 'adapter', 'ladegerät', 'fast charg', 'usb c charger', 'pd charger', '65w', '100w', '45w']
+      },
+      {
+        q: 'USB C cable fast charging 100w braided',
+        cat: 'Kabel',
+        keywords: ['cable', 'kabel', 'usb', 'type-c', 'type c', 'charging cable', 'data cable', 'braided']
+      },
+      {
+        q: 'iPhone tempered glass screen protector',
+        cat: 'Schutzglas',
+        keywords: ['glass', 'screen protector', 'panzerglas', 'schutzglas', 'tempered', 'schutzfolie', 'film']
+      },
+      {
+        q: 'Powerbank 10000mAh 20000mAh portable charger',
+        cat: 'Powerbanks',
+        keywords: ['powerbank', 'power bank', 'battery pack', 'portable charger', '10000', '20000', 'mah']
+      }
     ];
 
     // Magazyny z krótkim czasem dostawy do Niemiec (kolejność priorytetowa)
@@ -92,25 +114,27 @@ export async function POST() {
     for (const query of QUERIES) {
       const bestResults: any[] = [];
       
-      // Szukamy produktów globalnie, kierowanych na rynek DE, by wymusić trafność wyników
+      // Szukamy produktów globalnie, kierowanych na rynek DE
       try {
-        const results = await searchProducts(query.q, 1, 40, tokenData.access_token, '', query.aliCat);
+        const results = await searchProducts(query.q, 1, 60, tokenData.access_token, '');
         
         for (const res of results) {
           if (bestResults.length >= 5) break;
-            if (!res.product_id) continue;
-            
-            // FILTR STRATEGII DROPSHIPPINGU: "Sweet spot"
-            // Pomijamy śmieci (mniej niż 50 zamówień)
-            // Omijamy rynek przesycony (więcej niż 8000 zamówień)
-            if (res.total_sales < 50 || res.total_sales > 8000) {
-              continue;
-            }
+          if (!res.product_id) continue;
 
-            // Unikamy duplikatów
-            if (!bestResults.find(r => r.product_id === res.product_id)) {
-              bestResults.push(res);
-            }
+          // HARD TITLE FILTER – odrzucamy wszystko co nie pasuje do kategorii
+          const titleLower = (res.product_title || '').toLowerCase();
+          const isRelevant = query.keywords.some(kw => titleLower.includes(kw));
+          if (!isRelevant) continue;
+
+          // Sweet spot: odrzucamy produkty z brakiem zamowień i totalnych bestsellerów
+          const sales = res.total_sales || 0;
+          if (sales > 15000) continue;
+
+          // Unikamy duplikatów
+          if (!bestResults.find(r => r.product_id === res.product_id)) {
+            bestResults.push(res);
+          }
         }
       } catch (e) {
         console.warn(`Błąd wyszukiwania ${query.q}:`, e);
