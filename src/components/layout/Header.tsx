@@ -22,7 +22,7 @@ export default function Header() {
   const { items, openCart } = useCartStore();
   const { user } = useAuthStore();
   const count = items.reduce((s, i) => s + i.quantity, 0);
-  const cartTotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const cartTotal = items.reduce((s, i) => s + i.price.eur * i.quantity, 0);
 
   const [scrolled, setScrolled]       = useState(false);
   const [mobileOpen, setMobileOpen]   = useState(false);
