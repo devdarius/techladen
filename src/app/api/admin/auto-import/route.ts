@@ -92,16 +92,12 @@ export async function POST() {
     for (const query of QUERIES) {
       const bestResults: any[] = [];
       
-      // Przeszukujemy kolejne kraje, aż uzbieramy 5 produktów z europejskich magazynów
-      for (const warehouse of EU_WAREHOUSES) {
-        if (bestResults.length >= 5) break;
+      // Szukamy produktów globalnie, kierowanych na rynek DE, by wymusić trafność wyników
+      try {
+        const results = await searchProducts(query.q, 1, 40, tokenData.access_token, '', query.aliCat);
         
-        try {
-          // Używamy twardego filtrowania po AliCategoryId
-          const results = await searchProducts(query.q, 1, 20, tokenData.access_token, warehouse, query.aliCat);
-          
-          for (const res of results) {
-            if (bestResults.length >= 5) break;
+        for (const res of results) {
+          if (bestResults.length >= 5) break;
             if (!res.product_id) continue;
             
             // FILTR STRATEGII DROPSHIPPINGU: "Sweet spot"
@@ -115,10 +111,9 @@ export async function POST() {
             if (!bestResults.find(r => r.product_id === res.product_id)) {
               bestResults.push(res);
             }
-          }
-        } catch (e) {
-          console.warn(`Błąd wyszukiwania ${query.q} z magazynu ${warehouse}:`, e);
         }
+      } catch (e) {
+        console.warn(`Błąd wyszukiwania ${query.q}:`, e);
       }
       
       // Teraz pobieramy pełne detale dla uzbieranych wyników
