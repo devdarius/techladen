@@ -12,7 +12,10 @@ export async function GET(request: Request) {
 
   const tokenData = await exchangeToken(code);
 
-  if (!tokenData || !tokenData.access_token) {
+  // Handle the nested structure from AliExpress TOP API
+  const unwrappedToken = tokenData?.['/auth/token/create_response'] || tokenData;
+
+  if (!unwrappedToken || !unwrappedToken.access_token) {
     const errorDetails = JSON.stringify(tokenData || {});
     return NextResponse.redirect(new URL(`/admin?oauth=error&details=${encodeURIComponent(errorDetails)}`, request.url));
   }
@@ -20,10 +23,10 @@ export async function GET(request: Request) {
   // Store token in Firestore
   const db = getFirestore();
   await db.collection('settings').doc('aliexpress_token').set({
-    access_token: tokenData.access_token,
-    refresh_token: tokenData.refresh_token,
-    expires_at: Date.now() + tokenData.expires_in * 1000,
-    refresh_expires_at: Date.now() + tokenData.refresh_expires_in * 1000,
+    access_token: unwrappedToken.access_token,
+    refresh_token: unwrappedToken.refresh_token,
+    expires_at: Date.now() + (unwrappedToken.expires_in * 1000),
+    refresh_expires_at: Date.now() + (unwrappedToken.refresh_expires_in * 1000),
     updated_at: new Date().toISOString(),
   });
 
