@@ -30,7 +30,7 @@ export default function CategoryFilter({ categories, active }: Props) {
           className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
             active === cat
               ? 'bg-primary text-white border-primary'
-              : 'bg-white text-text-main border-border hover:border-primary hover:text-primary'
+              : 'bg-white text-[#111111] border-[#E5E5E5] hover:border-primary hover:text-primary'
           }`}
         >
           {cat}

@@ -13,8 +13,10 @@ function pad(n: number) { return String(n).padStart(2, '0'); }
 
 export default function CountdownTimer({ label = 'Angebot endet in:', dark = false }: { label?: string; dark?: boolean }) {
   const [secs, setSecs] = useState(getSecondsUntilMidnight());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const iv = setInterval(() => setSecs(getSecondsUntilMidnight()), 1000);
     return () => clearInterval(iv);
   }, []);
@@ -23,13 +25,31 @@ export default function CountdownTimer({ label = 'Angebot endet in:', dark = fal
   const m = pad(Math.floor((secs % 3600) / 60));
   const s = pad(secs % 60);
 
-  const textColor = dark ? 'text-white' : 'text-black';
-  const boxBg = dark ? 'bg-white/10' : 'bg-black';
+  const textColor = dark ? 'text-white' : 'text-[#111111]';
+  const boxBg = dark ? 'bg-white/10' : 'bg-[#00A3E0]';
   const boxText = dark ? 'text-white' : 'text-white';
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className={`text-xs font-semibold ${dark ? 'text-white/60' : 'text-[#999999]'}`}>{label}</span>
+        <div className="flex items-center gap-1">
+          {['00', '00', '00'].map((val, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <span className={`${boxBg} ${boxText} font-black text-sm px-2 py-1 rounded font-mono min-w-[32px] text-center`}>
+                {val}
+              </span>
+              {i < 2 && <span className={`font-black text-sm ${textColor}`}>:</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3">
-      <span className={`text-xs font-semibold ${dark ? 'text-white/60' : 'text-[#999]'}`}>{label}</span>
+      <span className={`text-xs font-semibold ${dark ? 'text-white/60' : 'text-[#999999]'}`}>{label}</span>
       <div className="flex items-center gap-1">
         {[h, m, s].map((val, i) => (
           <div key={i} className="flex items-center gap-1">

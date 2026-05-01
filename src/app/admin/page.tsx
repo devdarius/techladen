@@ -733,13 +733,16 @@ export default function AdminPage() {
               <p className="text-xs text-text-secondary mb-4">
                 Aby automatycznie składać zamówienia na AliExpress, musisz autoryzować aplikację.
               </p>
-              <a
-                href={`https://openservice.aliexpress.com/authorize/app_redirect?app_id=${process.env.NEXT_PUBLIC_ALIEXPRESS_APP_KEY ?? '532686'}&state=admin&redirect_uri=https://techladen.de/api/aliexpress/callback`}
+              <button
+                onClick={() => {
+                  const redirectUri = `${window.location.origin}/api/aliexpress/callback`;
+                  const appId = process.env.NEXT_PUBLIC_ALIEXPRESS_APP_KEY || '532686';
+                  window.open(`https://openservice.aliexpress.com/authorize/app_redirect?app_id=${appId}&state=admin&redirect_uri=${redirectUri}`, '_blank');
+                }}
                 className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
-                target="_blank" rel="noopener noreferrer"
               >
                 <Link2 className="w-4 h-4" /> Połącz z AliExpress
-              </a>
+              </button>
             </div>
 
             {/* Product search */}

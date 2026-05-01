@@ -1,78 +1,125 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Star, Percent } from 'lucide-react';
 import CountdownTimer from '@/components/ui/CountdownTimer';
+
+const STATS = [
+  { value: '10.000+', label: 'Kunden' },
+  { value: '4,9 / 5', label: 'Trustpilot' },
+  { value: '3–7 Tage', label: 'Lieferzeit' },
+];
 
 export default function HeroSection() {
   return (
-    <section className="bg-white border-b border-[#E8E8E8]">
-      <div className="max-w-7xl mx-auto px-6 py-16 lg:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section className="relative overflow-hidden" style={{
+      background: 'linear-gradient(150deg, #FFFFFF 0%, #F0F7FF 40%, #F5F0FF 100%)',
+    }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-          {/* Left */}
+          {/* ── LEFT SIDE ── */}
           <div>
-            <p className="text-xs font-bold tracking-[3px] uppercase text-[#999] mb-5">
-              Premium Handy-Zubehör
-            </p>
-            <h1 className="text-5xl lg:text-6xl font-black text-black leading-[1.05] tracking-tight mb-6">
-              Das Beste<br />für dein<br />Smartphone.
-            </h1>
-            <p className="text-base text-[#666] leading-relaxed mb-8 max-w-sm">
-              Geprüfte Qualität. Faire Preise. Schnelle Lieferung direkt nach Deutschland.
+            {/* Label */}
+            <p className="text-xs font-bold tracking-widest uppercase text-[#2563EB] mb-3">
+              Flash Sale · Heute
             </p>
 
-            <div className="mb-8">
+            {/* Headline */}
+            <h1 className="font-display text-5xl lg:text-6xl xl:text-7xl font-black text-[#0F172A] leading-[1.04] tracking-tight mb-5">
+              Das Beste<br />
+              für dein{' '}
+              <span className="gradient-text">iPhone</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-[#64748B] text-lg leading-relaxed mb-6 max-w-lg">
+              Premium-Zubehör für dein Smartphone — MagSafe, Hüllen, Ladegeräte und mehr.
+              Schnelle Lieferung direkt nach Deutschland
+            </p>
+
+            {/* Countdown */}
+            <div className="mb-7">
               <CountdownTimer label="Flash Sale endet in:" />
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link href="/#produkte"
-                className="inline-flex items-center gap-2 bg-black text-white font-semibold px-7 py-3.5 rounded-lg hover:bg-[#222] transition-colors text-sm">
-                Jetzt shoppen <ArrowRight className="w-4 h-4" />
+            {/* CTA buttons */}
+            <div className="flex flex-wrap gap-3 mb-8">
+              <Link href="/#produkte" className="btn-primary px-7 py-3.5 text-base">
+                Jetzt shoppen <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link href="/?kategorie=MagSafe"
-                className="inline-flex items-center gap-2 border border-[#E8E8E8] text-black font-semibold px-7 py-3.5 rounded-lg hover:bg-[#F7F7F7] transition-colors text-sm">
-                MagSafe
+              <Link href="/?badge=Angebote" className="btn-secondary px-7 py-3.5 text-base">
+                <Percent className="w-4 h-4" /> Sale Angebote
               </Link>
             </div>
 
-            {/* Stats */}
-            <div className="flex gap-8 mt-10 pt-8 border-t border-[#E8E8E8]">
-              {[
-                { v: '15.000+', l: 'Kunden' },
-                { v: '4.8 / 5', l: 'Bewertung' },
-                { v: '14 Tage', l: 'Rückgabe' },
-              ].map(({ v, l }) => (
-                <div key={l}>
-                  <p className="text-xl font-black text-black">{v}</p>
-                  <p className="text-xs text-[#999] mt-0.5">{l}</p>
+            {/* Trust micro-badges */}
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-[#64748B]">
+              <span className="flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-[#2563EB]" /> Schneller Versand
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#2563EB]" /> Sicherer Checkout
+              </span>
+              <span className="flex items-center gap-1.5">
+                <RefreshCcw className="w-4 h-4 text-[#2563EB]" /> 30 Tage Rückgabe
+              </span>
+            </div>
+
+            {/* Stats row */}
+            <div className="flex gap-8 mt-10 pt-8 border-t border-[#E2E8F0]">
+              {STATS.map(({ value, label }) => (
+                <div key={label}>
+                  <p className="font-display text-2xl font-black text-[#0F172A]">{value}</p>
+                  <p className="text-xs text-[#94A3B8] font-medium mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right — clean product grid */}
-          <div className="hidden lg:grid grid-cols-2 gap-3">
-            {[
-              { seed: 'magsafe1', label: 'MagSafe Ladegerät', price: '24,99 €', tag: 'Bestseller' },
-              { seed: 'case2',    label: 'iPhone 15 Hülle',   price: '12,99 €', tag: 'Neu' },
-              { seed: 'cable3',   label: 'USB-C Kabel 2m',    price: '7,99 €',  tag: '-30%' },
-              { seed: 'power4',   label: 'Powerbank 20000',   price: '29,99 €', tag: 'Top' },
-            ].map(({ seed, label, price, tag }, i) => (
-              <div key={seed}
-                className={`bg-[#F7F7F7] rounded-xl p-4 border border-[#E8E8E8] ${i % 2 === 1 ? 'mt-5' : ''}`}>
-                <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`https://picsum.photos/seed/${seed}/200/200`} alt={label}
-                    className="w-full h-full object-cover" />
-                  <span className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                    {tag}
-                  </span>
+          {/* ── RIGHT SIDE — Product showcase ── */}
+          <div className="hidden lg:flex justify-center items-center">
+            <div className="relative w-full max-w-md">
+              {/* Main card */}
+              <div className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-md">
+
+                {/* Product image */}
+                <div className="relative aspect-square w-full rounded-xl overflow-hidden mb-5 bg-[#F8FAFF]">
+                  <Image
+                    src="/hero-product.png"
+                    alt="Premium Smartphone Zubehör — MagSafe, Hüllen, Kabel"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 1024px) 0px, 400px"
+                  />
+                  <span className="badge-new absolute top-3 left-3">NEU</span>
                 </div>
-                <p className="text-xs font-semibold text-[#333] line-clamp-1">{label}</p>
-                <p className="text-sm font-black text-black mt-0.5">{price}</p>
+
+                {/* Product info */}
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="font-display font-bold text-[#0F172A] text-base leading-tight">
+                      Pro Wireless Charger 3-in-1
+                    </h3>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      <span className="stars text-sm">★★★★★</span>
+                      <span className="text-xs text-[#64748B] font-medium">(4,9 · 2.847 Bewertungen)</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-2xl font-black text-[#0F172A]">€49,99</p>
+                    <p className="price-original">€69,99</p>
+                  </div>
+                </div>
+
+                {/* Add to cart mini button */}
+                <button className="w-full mt-4 btn-primary py-3 text-sm">
+                  In den Warenkorb <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-            ))}
+            </div>
           </div>
+
         </div>
       </div>
     </section>

@@ -12,7 +12,7 @@ import CategoryShowcase from '@/components/home/CategoryShowcase';
 import RecentlyViewed from '@/components/home/RecentlyViewed';
 
 export const metadata: Metadata = {
-  title: 'TechLaden.de – Premium Handy-Zubehör',
+  title: 'TechLaden.de – Premium Handy-Zubehör | Schnelle Lieferung nach DE',
   description: 'Hochwertige Hüllen, Ladegeräte, Kabel, Schutzglas und Powerbanks. Kostenloser Versand ab 29€. Lieferzeit 3–7 Werktage. Alle Preise inkl. 19% MwSt.',
   openGraph: {
     title: 'TechLaden.de – Premium Handy-Zubehör',
@@ -71,10 +71,10 @@ export default async function HomePage({ searchParams }: PageProps) {
 
   return (
     <>
-      {/* 1. Hero with flash sale + countdown */}
+      {/* 1. Hero with CTA + flash sale countdown */}
       <HeroSection />
 
-      {/* 2. Trust bar */}
+      {/* 2. Trust bar — once only */}
       <TrustSection />
 
       {/* 3. Category showcase */}
@@ -83,42 +83,50 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* 4. Flash Sale Section */}
       <FlashSaleSection products={allProducts} />
 
-      {/* 5. Category filter + All products */}
-      <section id="produkte" className="max-w-7xl mx-auto px-4 py-10">
-        <Suspense>
-          <CategoryFilter categories={CATEGORIES} active={category} />
-        </Suspense>
+      {/* 5. All products grid */}
+      <section id="produkte" className="bg-white py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-text-main mb-6 flex items-center gap-2">
-            🔥 Bestseller
-          </h2>
+          {/* Section header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase text-[#2563EB] mb-2">Alle Produkte</p>
+              <h2 className="product-section-title">
+                {category === 'Alle' ? 'Bestseller' : category}
+              </h2>
+            </div>
+          </div>
 
-          {products.length === 0 ? (
-            <div className="text-center py-20 border-2 border-dashed border-border rounded-card">
-              <p className="text-text-secondary text-lg font-medium">Noch keine Produkte</p>
-              <p className="text-text-secondary text-sm mt-2">
-                Importiere Produkte über das{' '}
-                <a href="/admin" className="text-primary hover:underline">Admin-Panel</a>.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          {/* Category filter tabs */}
+          <Suspense>
+            <CategoryFilter categories={CATEGORIES} active={category} />
+          </Suspense>
+
+          {/* Products */}
+          <div className="mt-8">
+            {products.length === 0 ? (
+              <div className="text-center py-24 border-2 border-dashed border-[#E2E8F0] rounded-2xl bg-[#F8FAFF]">
+                <p className="text-[#0F172A] text-lg font-bold">Noch keine Produkte</p>
+                <p className="text-[#64748B] text-sm mt-2">
+                  Importiere Produkte über das{' '}
+                  <a href="/admin" className="text-[#2563EB] hover:underline font-semibold">Admin-Panel</a>.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* 6. Trust section again */}
-      <TrustSection />
-
-      {/* 7. Recently viewed */}
+      {/* 6. Recently viewed */}
       <RecentlyViewed />
 
-      {/* 8. Newsletter */}
+      {/* 7. Newsletter */}
       <NewsletterSection />
     </>
   );
