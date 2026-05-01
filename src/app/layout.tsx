@@ -7,6 +7,7 @@ import AnnouncementBar from '@/components/layout/AnnouncementBar';
 import AuthProvider from '@/components/auth/AuthProvider';
 import CookieConsent from '@/components/CookieConsent';
 import ExitIntentPopup from '@/components/ui/ExitIntentPopup';
+import Analytics from '@/components/Analytics';
 
 export const metadata: Metadata = {
   title: 'TechLaden.de – Premium Handy-Zubehör',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="de">
       <body className="min-h-screen flex flex-col bg-white text-text-main">
+        <Analytics />
         <AnnouncementBar />
         <Header />
         <main className="flex-1"><AuthProvider>{children}</AuthProvider></main>

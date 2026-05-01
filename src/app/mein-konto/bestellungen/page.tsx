@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, Loader2, Truck } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 import type { Order } from '@/types/user';
 
@@ -89,10 +89,18 @@ export default function BestellungenPage() {
                     </div>
                   ))}
                 </div>
-                <div className="px-5 py-3 border-t border-border flex items-center justify-between">
-                  <p className="text-xs text-text-secondary">
-                    Lieferung: {order.shippingAddress.street}, {order.shippingAddress.zip} {order.shippingAddress.city}
-                  </p>
+                <div className="px-5 py-3 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-text-secondary mb-1">
+                      Lieferung: {order.shippingAddress.street}, {order.shippingAddress.zip} {order.shippingAddress.city}
+                    </p>
+                    {order.trackingNumber && (
+                      <p className="text-xs font-medium text-primary flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5" />
+                        Sendungsnummer: <a href={`https://parcelsapp.com/de/tracking/${order.trackingNumber}`} target="_blank" rel="noreferrer" className="underline hover:text-text-main transition-colors">{order.trackingNumber}</a>
+                      </p>
+                    )}
+                  </div>
                   <p className="text-sm font-bold text-primary">
                     {order.total.toFixed(2).replace('.', ',')} €
                   </p>

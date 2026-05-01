@@ -27,6 +27,8 @@ export interface Order {
   status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   stripeSessionId?: string;
   stripePaymentIntentId?: string;
+  trackingNumber?: string;
+  aliexpressOrderId?: string;
   createdAt: string;
   updatedAt: string;
 }
