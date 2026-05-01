@@ -139,14 +139,26 @@ export async function searchProducts(
       throw new Error(JSON.stringify(data.error_response));
     }
     
-    const resp = data['aliexpress_ds_text_search_response'] as Record<string, unknown> | undefined;
-    const list = resp?.['products'] as SearchResult[] | undefined;
+    const resp = data['aliexpress_ds_text_search_response'] as Record<string, any> | undefined;
+    const productsData = resp?.data?.products?.selection_search_product;
     
-    // If no list, let's at least see what data was returned by throwing it
-    if (!list) {
-       throw new Error(`No products array in response: ${JSON.stringify(data)}`);
+    // If no list, return empty
+    if (!productsData || !Array.isArray(productsData)) {
+       return [];
     }
-    return list;
+    
+    // Map the new fields to our SearchResult interface
+    const mappedList: SearchResult[] = productsData.map((item: any) => ({
+      product_id: parseInt(item.itemId || '0'),
+      product_title: item.title || '',
+      sale_price: item.targetSalePrice || item.salePrice || '0',
+      main_image: item.itemMainPic ? (item.itemMainPic.startsWith('//') ? 'https:' + item.itemMainPic : item.itemMainPic) : '',
+      product_url: item.itemUrl ? (item.itemUrl.startsWith('//') ? 'https:' + item.itemUrl : item.itemUrl) : '',
+      total_sales: parseInt((item.orders || '0').replace(/[^0-9]/g, '')),
+      evaluate_rate: item.evaluateRate || '0',
+    }));
+    
+    return mappedList;
   } catch (err) {
     throw err;
   }
