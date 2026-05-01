@@ -82,12 +82,18 @@ export async function POST() {
       { q: 'Powerbank 10000mAh', cat: 'Powerbanks' }
     ];
 
+    // Magazyny z krótkim czasem dostawy do Niemiec
+    const EU_WAREHOUSES = ['DE', 'ES', 'FR', 'PL', 'CZ'];
+
     let totalAdded = 0;
     const batch2 = db.batch();
     const now = new Date().toISOString();
 
-    for (const query of QUERIES) {
-      const results = await searchProducts(query.q, 1, 5, tokenData.access_token);
+    for (let i = 0; i < QUERIES.length; i++) {
+      const query = QUERIES[i];
+      const warehouse = EU_WAREHOUSES[i % EU_WAREHOUSES.length]; // Rotujemy krajami
+
+      const results = await searchProducts(query.q, 1, 5, tokenData.access_token, warehouse);
       
       for (const res of results) {
         if (!res.product_id) continue;

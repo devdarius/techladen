@@ -117,16 +117,16 @@ export async function searchProducts(
   keyword: string,
   page = 1,
   pageSize = 20,
-  session?: string
+  session?: string,
+  shipFromCountry: string = '' // np. DE, ES, FR, PL
 ): Promise<SearchResult[]> {
   try {
-    const data = await callAPI('aliexpress.ds.text.search', {
+    const params: any = {
       search_key: keyword,
       target_currency: 'EUR',
       currency: 'EUR',
       target_language: 'de_DE',
       ship_to_country: 'DE',
-      ship_from_country: 'DE', // Wymusza wysyłkę z Niemiec!
       countryCode: 'DE',
       local_country: 'DE',
       local_language: 'de',
@@ -134,7 +134,13 @@ export async function searchProducts(
       page_no: String(page),
       page_size: String(pageSize),
       sort: 'SALE_PRICE_ASC',
-    }, session);
+    };
+    
+    if (shipFromCountry) {
+      params.ship_from_country = shipFromCountry;
+    }
+
+    const data = await callAPI('aliexpress.ds.text.search', params, session);
     
     if (data.error_response) {
       throw new Error(JSON.stringify(data.error_response));
