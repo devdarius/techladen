@@ -129,6 +129,7 @@ export async function searchProducts(
       countryCode: 'DE',
       local_country: 'DE',
       local_language: 'de',
+      local: 'de_DE',
       page_no: String(page),
       page_size: String(pageSize),
       sort: 'SALE_PRICE_ASC',
