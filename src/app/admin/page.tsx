@@ -737,7 +737,7 @@ export default function AdminPage() {
                 onClick={() => {
                   const redirectUri = `${window.location.origin}/api/aliexpress/callback`;
                   const appId = process.env.NEXT_PUBLIC_ALIEXPRESS_APP_KEY || '532686';
-                  window.open(`https://openservice.aliexpress.com/authorize/app_redirect?app_id=${appId}&state=admin&redirect_uri=${redirectUri}`, '_blank');
+                  window.open(`https://api-sg.aliexpress.com/oauth/authorize?response_type=code&force_auth=true&redirect_uri=${redirectUri}&client_id=${appId}`, '_blank');
                 }}
                 className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 text-sm"
               >
