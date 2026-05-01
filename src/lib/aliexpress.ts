@@ -131,11 +131,21 @@ export async function searchProducts(
       page_size: String(pageSize),
       sort: 'SALE_PRICE_ASC',
     }, session);
+    
+    if (data.error_response) {
+      throw new Error(JSON.stringify(data.error_response));
+    }
+    
     const resp = data['aliexpress_ds_text_search_response'] as Record<string, unknown> | undefined;
     const list = resp?.['products'] as SearchResult[] | undefined;
-    return list ?? [];
-  } catch {
-    return [];
+    
+    // If no list, let's at least see what data was returned by throwing it
+    if (!list) {
+       throw new Error(`No products array in response: ${JSON.stringify(data)}`);
+    }
+    return list;
+  } catch (err) {
+    throw err;
   }
 }
 

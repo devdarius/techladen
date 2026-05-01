@@ -20,8 +20,8 @@ export async function GET(request: Request) {
 
     const results = await searchProducts(keyword, page, 20, tokenData.access_token);
     return NextResponse.json(results);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Search error:', error);
-    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Search failed', details: String(error) }, { status: 500 });
   }
 }
