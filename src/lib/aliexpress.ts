@@ -125,6 +125,7 @@ export async function searchProducts(
       target_currency: 'EUR',
       target_language: 'de_DE',
       ship_to_country: 'DE',
+      country_code: 'DE',
       local_country: 'DE',
       local_language: 'de',
       page_no: String(page),
