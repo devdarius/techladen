@@ -118,7 +118,8 @@ export async function searchProducts(
   page = 1,
   pageSize = 20,
   session?: string,
-  shipFromCountry: string = '' // np. DE, ES, FR, PL
+  shipFromCountry: string = '', // np. DE, ES, FR, PL
+  categoryId: string = ''
 ): Promise<SearchResult[]> {
   try {
     const params: any = {
@@ -138,6 +139,9 @@ export async function searchProducts(
     
     if (shipFromCountry) {
       params.ship_from_country = shipFromCountry;
+    }
+    if (categoryId) {
+      params.category_id = categoryId;
     }
 
     const data = await callAPI('aliexpress.ds.text.search', params, session);

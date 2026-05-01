@@ -74,12 +74,12 @@ export async function POST() {
     await batch.commit();
 
     const QUERIES = [
-      { q: 'MagSafe Ladegerät', cat: 'MagSafe' },
-      { q: 'iPhone 15 Hülle', cat: 'Hüllen' },
-      { q: 'GaN Ladegerät', cat: 'Ladegeräte' },
-      { q: 'USB-C Kabel 100W', cat: 'Kabel' },
-      { q: 'iPhone Panzerglas', cat: 'Schutzglas' },
-      { q: 'Powerbank 10000mAh', cat: 'Powerbanks' }
+      { q: 'MagSafe wireless charger', cat: 'MagSafe', aliCat: '5090301' },
+      { q: 'iPhone 15 pro max case', cat: 'Hüllen', aliCat: '5090301' },
+      { q: 'GaN fast charger 65w', cat: 'Ladegeräte', aliCat: '5090301' },
+      { q: 'USB C fast charge cable 100w', cat: 'Kabel', aliCat: '5090301' },
+      { q: 'iPhone screen protector tempered glass', cat: 'Schutzglas', aliCat: '5090301' },
+      { q: 'Powerbank 10000mAh PD', cat: 'Powerbanks', aliCat: '44' }
     ];
 
     // Magazyny z krótkim czasem dostawy do Niemiec (kolejność priorytetowa)
@@ -97,7 +97,8 @@ export async function POST() {
         if (bestResults.length >= 5) break;
         
         try {
-          const results = await searchProducts(query.q, 1, 20, tokenData.access_token, warehouse);
+          // Używamy twardego filtrowania po AliCategoryId
+          const results = await searchProducts(query.q, 1, 20, tokenData.access_token, warehouse, query.aliCat);
           
           for (const res of results) {
             if (bestResults.length >= 5) break;
