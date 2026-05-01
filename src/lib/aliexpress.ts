@@ -6,8 +6,9 @@ const APP_SECRET = process.env.ALIEXPRESS_APP_SECRET!;
 
 // ─── Signing ──────────────────────────────────────────────────
 export function sign(params: Record<string, string>, secret: string): string {
-  const base = Object.entries(params)
-    .filter(([, v]) => v != null && v !== '')
+  const methodName = params.method || '';
+  const base = methodName + Object.entries(params)
+    .filter(([k, v]) => v != null && v !== '' && k !== 'sign')
     .sort(([a], [b]) => a.localeCompare(b))
     .reduce((acc, [k, v]) => acc + k + v, '');
   return crypto.createHmac('sha256', secret).update(base).digest('hex').toUpperCase();
