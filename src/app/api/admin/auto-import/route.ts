@@ -82,22 +82,38 @@ export async function POST() {
       { q: 'Powerbank 10000mAh', cat: 'Powerbanks' }
     ];
 
-    // Magazyny z krótkim czasem dostawy do Niemiec
-    const EU_WAREHOUSES = ['DE', 'ES', 'FR', 'PL', 'CZ'];
+    // Magazyny z krótkim czasem dostawy do Niemiec (kolejność priorytetowa)
+    const EU_WAREHOUSES = ['DE', 'PL', 'CZ', 'FR', 'ES'];
 
     let totalAdded = 0;
     const batch2 = db.batch();
     const now = new Date().toISOString();
 
-    for (let i = 0; i < QUERIES.length; i++) {
-      const query = QUERIES[i];
-      const warehouse = EU_WAREHOUSES[i % EU_WAREHOUSES.length]; // Rotujemy krajami
-
-      const results = await searchProducts(query.q, 1, 5, tokenData.access_token, warehouse);
+    for (const query of QUERIES) {
+      const bestResults: any[] = [];
       
-      for (const res of results) {
-        if (!res.product_id) continue;
+      // Przeszukujemy kolejne kraje, aż uzbieramy 5 produktów z europejskich magazynów
+      for (const warehouse of EU_WAREHOUSES) {
+        if (bestResults.length >= 5) break;
         
+        try {
+          const results = await searchProducts(query.q, 1, 5, tokenData.access_token, warehouse);
+          
+          for (const res of results) {
+            if (bestResults.length >= 5) break;
+            if (!res.product_id) continue;
+            // Unikamy duplikatów
+            if (!bestResults.find(r => r.product_id === res.product_id)) {
+              bestResults.push(res);
+            }
+          }
+        } catch (e) {
+          console.warn(`Błąd wyszukiwania ${query.q} z magazynu ${warehouse}:`, e);
+        }
+      }
+      
+      // Teraz pobieramy pełne detale dla uzbieranych wyników
+      for (const res of bestResults) {
         // Fetch full product details
         const details = await getProduct(res.product_id.toString(), tokenData.access_token);
         if (!details) continue;
