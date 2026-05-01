@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Product } from '@/types/product';
-import { Save, X, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Save, X, Plus, Trash2, Image as ImageIcon, TrendingUp, ShoppingBag } from 'lucide-react';
 
 interface ProductEditorProps {
   product: Product;
@@ -95,16 +95,40 @@ export function ProductEditor({ product, onSave, onClose }: ProductEditorProps) 
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-text-main mb-1">Cena (€)</label>
+                    <label className="block text-sm font-semibold text-text-main mb-1">⭐ Nasza cena sprzedaży (€)</label>
                     <input type="number" step="0.01" name="priceEur" value={formData.price?.eur} onChange={handlePriceChange} required
-                      className="w-full border border-border rounded-btn px-3 py-2 text-sm focus:border-primary focus:outline-none font-medium" />
+                      className="w-full border-2 border-primary rounded-btn px-3 py-2 text-sm focus:outline-none font-bold text-lg" />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-text-secondary mb-1">Koszt Ali (€)</label>
-                    <input type="text" value={product.price.aliexpressEur} disabled
+                    <label className="block text-sm font-semibold text-text-secondary mb-1">🛍️ Koszt AliExpress (€)</label>
+                    <input type="text" value={`€ ${product.price.aliexpressEur?.toFixed(2) ?? '?'}`} disabled
                       className="w-full border border-border rounded-btn px-3 py-2 text-sm bg-surface text-text-secondary" />
                   </div>
                 </div>
+
+                {/* Margin calculator */}
+                {(() => {
+                  const aliCost = product.price.aliexpressEur ?? 0;
+                  const sellPrice = formData.price?.eur ?? 0;
+                  const profit = sellPrice - aliCost;
+                  const marginPct = aliCost > 0 ? ((profit / aliCost) * 100).toFixed(0) : '?';
+                  const isGood = profit > 0;
+                  return (
+                    <div className={`rounded-btn p-3 flex items-center gap-3 ${isGood ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                      <TrendingUp className={`w-5 h-5 ${isGood ? 'text-green-600' : 'text-red-500'}`} />
+                      <div className="flex-1 text-sm">
+                        <span className="font-bold">Zysk: € {profit.toFixed(2)}</span>
+                        <span className="text-text-secondary ml-2">({marginPct}% marża)</span>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        Number(marginPct) >= 200 ? 'bg-green-200 text-green-800' :
+                        Number(marginPct) >= 100 ? 'bg-yellow-200 text-yellow-800' : 'bg-red-200 text-red-800'
+                      }`}>
+                        {Number(marginPct) >= 200 ? '🔥 Wysoka' : Number(marginPct) >= 100 ? '✓ OK' : '⚠ Niska'}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
