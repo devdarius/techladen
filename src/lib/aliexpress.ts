@@ -258,7 +258,12 @@ export async function exchangeToken(code: string): Promise<{
   refresh_expires_in: number;
 } | null> {
   try {
-    const data = await callAPI('/auth/token/security/create', { code });
+    const data = await callAPI('/auth/token/create', { code });
+    // Check if there is an error inside the response
+    if (data.error_response) {
+      console.error("AliExpress token exchange error:", data.error_response);
+      return null;
+    }
     return data as {
       access_token: string;
       refresh_token: string;
@@ -276,7 +281,11 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
   expires_in: number;
 } | null> {
   try {
-    const data = await callAPI('/auth/token/security/refresh', { refresh_token: refreshToken });
+    const data = await callAPI('/auth/token/refresh', { refresh_token: refreshToken });
+    if (data.error_response) {
+      console.error("AliExpress token refresh error:", data.error_response);
+      return null;
+    }
     return data as { access_token: string; refresh_token: string; expires_in: number };
   } catch {
     return null;
