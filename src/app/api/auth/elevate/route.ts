@@ -18,8 +18,9 @@ export async function POST(request: Request) {
     const db = getFirestore();
     await db.collection('users').doc(session.uid).update({ role: 'admin' });
 
-    session.role = 'admin';
-    await setSession(session);
+    // Strip JWT-specific fields before re-signing
+    const { uid, email, firstName, lastName } = session;
+    await setSession({ uid, email, firstName, lastName, role: 'admin' });
 
     return NextResponse.json({ ok: true, message: 'Uprawnienia nadane pomyślnie!' });
   } catch (err: any) {
