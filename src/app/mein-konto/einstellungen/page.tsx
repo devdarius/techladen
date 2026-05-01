@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Loader2, Key } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Key, Bell, ShieldAlert, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
 
 export default function EinstellungenPage() {
@@ -17,7 +17,9 @@ export default function EinstellungenPage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    newsletter: true,
   });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/anmelden');
@@ -25,6 +27,7 @@ export default function EinstellungenPage() {
       setFormData({
         name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         phone: '',
+        newsletter: true,
       });
     }
   }, [user, loading, router]);
@@ -39,6 +42,27 @@ export default function EinstellungenPage() {
       setSaving(false);
       setMessage('Einstellungen erfolgreich gespeichert.');
     }, 800);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('Sind Sie sicher, dass Sie Ihr Konto endgültig löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden.')) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/auth/me', { method: 'DELETE' });
+      if (res.ok) {
+        useAuthStore.getState().setUser(null);
+        window.location.href = '/';
+      } else {
+        alert('Fehler beim Löschen des Kontos.');
+        setIsDeleting(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setIsDeleting(false);
+    }
   };
 
   if (loading || !user) return null;
@@ -94,8 +118,8 @@ export default function EinstellungenPage() {
             </div>
           </div>
 
-          <div className="pt-4 flex items-center justify-between">
-            <Link href="/passwort-vergessen" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+          <div className="pt-4 flex items-center justify-between border-b border-border pb-8">
+            <Link href="/passwort-vergessen" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium">
               <Key className="w-4 h-4" /> Passwort ändern
             </Link>
             
@@ -115,6 +139,52 @@ export default function EinstellungenPage() {
             </div>
           </div>
         </form>
+
+        {/* Newsletter Section */}
+        <div className="py-8 border-b border-border">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-text-main">Newsletter & Angebote</h3>
+              <p className="text-sm text-text-secondary mt-1">Erhalten Sie Benachrichtigungen über exklusive Rabatte, Produktneuheiten und Aktionen.</p>
+              
+              <label className="flex items-center gap-2 mt-4 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={formData.newsletter}
+                  onChange={(e) => setFormData(prev => ({...prev, newsletter: e.target.checked}))}
+                  className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                />
+                <span className="text-sm font-medium text-text-main">Ich möchte den Newsletter erhalten</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete Account Section */}
+        <div className="pt-8">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-red-50 text-red-600 rounded-lg shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-red-600">Konto löschen (Gefahrenzone)</h3>
+              <p className="text-sm text-text-secondary mt-1">Wenn Sie Ihr Konto löschen, werden alle Ihre persönlichen Daten, Bestellhistorie und gespeicherten Adressen dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+              
+              <button 
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="mt-4 px-4 py-2 border border-red-200 text-red-600 rounded-btn text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-2"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Mein Konto endgültig löschen
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -46,3 +46,8 @@ export function getFirestore() {
   getFirebaseAdmin();
   return admin.firestore();
 }
+
+export function getAuthAdmin() {
+  getFirebaseAdmin();
+  return admin.auth();
+}
