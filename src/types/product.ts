@@ -18,6 +18,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   badge?: string | null;
+  status: 'active' | 'draft' | 'trash';
 }
 
 export interface CartItem extends Product {

@@ -109,6 +109,7 @@ export async function POST(request: Request) {
       inStock: totalStock > 0,
       createdAt: now,
       updatedAt: now,
+      status: 'draft',
     };
 
     const db = getFirestore();

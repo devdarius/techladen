@@ -42,6 +42,7 @@ function normalize(id: string, data: FirebaseFirestore.DocumentData): Product {
     createdAt: data.createdAt ?? '',
     updatedAt: data.updatedAt ?? '',
     badge: data.badge ?? null,
+    status: data.status ?? 'active',
   };
 }
 

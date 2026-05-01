@@ -5,11 +5,12 @@ import Image from 'next/image';
 import {
   Lock, Package, Trash2, RefreshCw, Plus, BarChart2,
   ShoppingBag, DollarSign, Loader2, LogOut, Eye, EyeOff,
-  Users, ClipboardList, ChevronDown, Truck, Search, Link2, Tag,
+  Users, ClipboardList, ChevronDown, Truck, Search, Link2, Tag, Edit3,
 } from 'lucide-react';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/user';
 import type { Coupon, CouponType } from '@/types/coupon';
+import { ProductEditor } from '@/components/admin/ProductEditor';
 
 interface AdminUser {
   uid: string; email: string; firstName: string; lastName: string; createdAt: string; phone?: string;
@@ -74,6 +75,9 @@ export default function AdminPage() {
   const [couponMsg, setCouponMsg] = useState('');
   const [couponError, setCouponError] = useState('');
 
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'draft' | 'trash'>('all');
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'x-admin-password': password,
@@ -83,7 +87,7 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const [pRes, uRes, oRes, cRes] = await Promise.all([
-        fetch('/api/products'),
+        fetch('/api/products?admin=true'),
         fetch('/api/admin/users', { headers: headers() }),
         fetch('/api/admin/orders', { headers: headers() }),
         fetch('/api/coupons', { headers: headers() }),
@@ -136,9 +140,26 @@ export default function AdminPage() {
   };
 
   const deleteProduct = async (slug: string, title: string) => {
-    if (!confirm(`Usunąć produkt "${title}"?`)) return;
+    if (!confirm(`Usunąć produkt "${title}" BEZPOWROTNIE?`)) return;
     await fetch(`/api/products/${slug}`, { method: 'DELETE', headers: headers() });
     setProducts((p) => p.filter((x) => x.slug !== slug));
+  };
+
+  const handleSaveProduct = async (slug: string, updates: Partial<Product>) => {
+    const res = await fetch(`/api/products/${slug}`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      throw new Error('Aktualizacja nie powiodła się');
+    }
+    loadAll();
+  };
+
+  const moveToTrash = async (slug: string, title: string) => {
+    if (!confirm(`Przenieść "${title}" do kosza?`)) return;
+    await handleSaveProduct(slug, { status: 'trash' });
   };
 
   const deleteUser = async (uid: string, email: string) => {
@@ -387,8 +408,18 @@ export default function AdminPage() {
 
             {/* List */}
             <div className="bg-white rounded-card border border-border shadow-card overflow-hidden">
-              <div className="px-5 py-4 border-b border-border">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <h3 className="font-semibold text-text-main">Lista produktów ({products.length})</h3>
+                <div className="flex bg-surface rounded-btn p-1">
+                  {['all', 'active', 'draft', 'trash'].map(filter => (
+                    <button key={filter} onClick={() => setProductStatusFilter(filter as any)}
+                      className={`px-3 py-1 text-xs font-medium rounded-btn transition-colors ${
+                        productStatusFilter === filter ? 'bg-white shadow-sm text-text-main' : 'text-text-secondary hover:text-text-main'
+                      }`}>
+                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
               {loading ? (
                 <div className="p-10 text-center text-text-secondary flex items-center justify-center gap-2">
@@ -398,13 +429,18 @@ export default function AdminPage() {
                 <p className="p-10 text-center text-text-secondary">Brak produktów.</p>
               ) : (
                 <div className="divide-y divide-border">
-                  {products.map((p) => (
+                  {products.filter(p => productStatusFilter === 'all' ? true : (p.status || 'active') === productStatusFilter).map((p) => (
                     <div key={p.id} className="flex items-center gap-4 px-5 py-3 hover:bg-surface transition-colors">
                       <div className="relative w-12 h-12 flex-shrink-0 rounded-btn overflow-hidden bg-surface border border-border">
                         {p.images[0] && <Image src={p.images[0]} alt={p.title} fill className="object-contain p-1" sizes="48px" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text-main line-clamp-1">{p.title}</p>
+                        <p className="text-sm font-medium text-text-main line-clamp-1">
+                          {p.title} 
+                          {(!p.status || p.status === 'active') && <span className="ml-2 text-[10px] font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded">ACTIVE</span>}
+                          {p.status === 'draft' && <span className="ml-2 text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">DRAFT</span>}
+                          {p.status === 'trash' && <span className="ml-2 text-[10px] font-bold bg-red-100 text-red-700 px-1.5 py-0.5 rounded">TRASH</span>}
+                        </p>
                         <p className="text-xs text-text-secondary">{p.category} · <span className="text-primary font-medium">{p.price.eur.toFixed(2).replace('.', ',')} €</span></p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -412,16 +448,36 @@ export default function AdminPage() {
                           className="text-xs px-3 py-1.5 rounded-btn border border-border hover:border-primary text-text-secondary hover:text-primary transition-colors">
                           Podgląd
                         </a>
-                        <button onClick={() => deleteProduct(p.slug, p.title)}
-                          className="p-1.5 rounded-btn text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors">
-                          <Trash2 className="w-4 h-4" />
+                        <button onClick={() => setEditingProduct(p)}
+                          className="p-1.5 rounded-btn text-text-secondary hover:text-primary hover:bg-surface transition-colors" title="Edytuj produkt">
+                          <Edit3 className="w-4 h-4" />
                         </button>
+                        {p.status !== 'trash' ? (
+                          <button onClick={() => moveToTrash(p.slug, p.title)}
+                            className="p-1.5 rounded-btn text-text-secondary hover:text-orange-500 hover:bg-orange-50 transition-colors" title="Przenieś do kosza">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button onClick={() => deleteProduct(p.slug, p.title)}
+                            className="p-1.5 rounded-btn text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Usuń trwale">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
+            
+            {editingProduct && (
+              <ProductEditor
+                product={editingProduct}
+                onClose={() => setEditingProduct(null)}
+                onSave={handleSaveProduct}
+              />
+            )}
+            
           </div>
         )}
 

@@ -22,6 +22,7 @@ function normalizeProduct(id: string, data: FirebaseFirestore.DocumentData): Pro
     createdAt: data.createdAt ?? '',
     updatedAt: data.updatedAt ?? '',
     badge: data.badge ?? null,
+    status: data.status ?? 'active',
   };
 }
 
@@ -39,7 +40,11 @@ async function getProduct(slug: string): Promise<Product | null> {
 async function getRelated(category: string, excludeSlug: string): Promise<Product[]> {
   try {
     const db = getFirestore();
-    const snapshot = await db.collection('products/de/items').where('category', '==', category).limit(5).get();
+    const snapshot = await db.collection('products/de/items')
+      .where('category', '==', category)
+      .where('status', '==', 'active')
+      .limit(8)
+      .get();
     return snapshot.docs
       .map((doc) => normalizeProduct(doc.id, doc.data()))
       .filter((p) => p.slug !== excludeSlug)
