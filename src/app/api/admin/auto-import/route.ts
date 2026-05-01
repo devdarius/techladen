@@ -97,11 +97,19 @@ export async function POST() {
         if (bestResults.length >= 5) break;
         
         try {
-          const results = await searchProducts(query.q, 1, 5, tokenData.access_token, warehouse);
+          const results = await searchProducts(query.q, 1, 20, tokenData.access_token, warehouse);
           
           for (const res of results) {
             if (bestResults.length >= 5) break;
             if (!res.product_id) continue;
+            
+            // FILTR STRATEGII DROPSHIPPINGU: "Sweet spot"
+            // Pomijamy śmieci (mniej niż 50 zamówień)
+            // Omijamy rynek przesycony (więcej niż 8000 zamówień)
+            if (res.total_sales < 50 || res.total_sales > 8000) {
+              continue;
+            }
+
             // Unikamy duplikatów
             if (!bestResults.find(r => r.product_id === res.product_id)) {
               bestResults.push(res);
