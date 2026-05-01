@@ -6,8 +6,7 @@ const APP_SECRET = process.env.ALIEXPRESS_APP_SECRET!;
 
 // ─── Signing ──────────────────────────────────────────────────
 export function sign(params: Record<string, string>, secret: string): string {
-  const methodName = params.method || '';
-  const base = methodName + Object.entries(params)
+  const base = Object.entries(params)
     .filter(([k, v]) => v != null && v !== '' && k !== 'sign')
     .sort(([a], [b]) => a.localeCompare(b))
     .reduce((acc, [k, v]) => acc + k + v, '');
@@ -126,7 +125,7 @@ export async function searchProducts(
       target_currency: 'EUR',
       target_language: 'de_DE',
       ship_to_country: 'DE',
-      country_code: 'DE',
+      countryCode: 'DE',
       local_country: 'DE',
       local_language: 'de',
       page_no: String(page),
