@@ -96,7 +96,7 @@ export interface SearchResult {
 }
 
 // ─── 1. Get product details ───────────────────────────────────
-export async function getProduct(productId: string): Promise<AliExpressProduct | null> {
+export async function getProduct(productId: string, session?: string): Promise<AliExpressProduct | null> {
   try {
     const data = await callAPI('aliexpress.ds.product.get', {
       product_id: productId,
@@ -105,7 +105,7 @@ export async function getProduct(productId: string): Promise<AliExpressProduct |
       ship_to_country: 'DE',
       local_country: 'DE',
       local_language: 'de',
-    });
+    }, session);
     return (data['aliexpress_ds_product_get_response'] as AliExpressProduct) ?? null;
   } catch {
     return null;
@@ -116,7 +116,8 @@ export async function getProduct(productId: string): Promise<AliExpressProduct |
 export async function searchProducts(
   keyword: string,
   page = 1,
-  pageSize = 20
+  pageSize = 20,
+  session?: string
 ): Promise<SearchResult[]> {
   try {
     const data = await callAPI('aliexpress.ds.text.search', {
@@ -129,7 +130,7 @@ export async function searchProducts(
       page_no: String(page),
       page_size: String(pageSize),
       sort: 'SALE_PRICE_ASC',
-    });
+    }, session);
     const resp = data['aliexpress_ds_text_search_response'] as Record<string, unknown> | undefined;
     const list = resp?.['products'] as SearchResult[] | undefined;
     return list ?? [];
@@ -143,7 +144,8 @@ export async function getFreightOptions(
   productId: string,
   quantity: number,
   countryCode = 'DE',
-  skuId?: string
+  skuId?: string,
+  session?: string
 ): Promise<FreightOption[]> {
   try {
     const params: Record<string, string> = {
@@ -154,7 +156,7 @@ export async function getFreightOptions(
     };
     if (skuId) params.sku_id = skuId;
 
-    const data = await callAPI('aliexpress.ds.freight.query', params);
+    const data = await callAPI('aliexpress.ds.freight.query', params, session);
     const resp = data['aliexpress_ds_freight_query_response'] as Record<string, unknown> | undefined;
     const list = resp?.['freight_list'] as FreightOption[] | undefined;
     return list ?? [];
