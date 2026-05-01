@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 const CATEGORIES = ['Alle', 'MagSafe', 'Hüllen', 'Ladegeräte', 'Kabel', 'Schutzglas', 'Powerbanks', 'Gaming', 'Smartwatch', 'Zubehör'];
 
 function normalize(id: string, data: FirebaseFirestore.DocumentData): Product {

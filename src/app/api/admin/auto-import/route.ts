@@ -157,7 +157,7 @@ export async function POST() {
           aliexpressProductId: res.product_id.toString(),
           inStock: totalStock > 0,
           badge: totalAdded % 3 === 0 ? 'BESTSELLER' : null,
-          status: 'draft',
+          status: 'active',
           createdAt: now,
           updatedAt: now,
         };
