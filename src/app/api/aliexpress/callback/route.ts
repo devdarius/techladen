@@ -12,8 +12,9 @@ export async function GET(request: Request) {
 
   const tokenData = await exchangeToken(code);
 
-  if (!tokenData?.access_token) {
-    return NextResponse.redirect(new URL('/admin?oauth=error', request.url));
+  if (!tokenData || !tokenData.access_token) {
+    const errorDetails = JSON.stringify(tokenData || {});
+    return NextResponse.redirect(new URL(`/admin?oauth=error&details=${encodeURIComponent(errorDetails)}`, request.url));
   }
 
   // Store token in Firestore
